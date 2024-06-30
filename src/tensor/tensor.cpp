@@ -94,6 +94,59 @@ Tensor Tensor::operator*(Tensor &other) {
   return out;
 }
 
+Tensor Tensor::operator&(Tensor &other) {
+  if (this->shape.back() != other.shape.front()) {
+    throw std::invalid_argument("Shape mismatch");
+  }
+  if (this->shape.size() != 2 || other.shape.size() != 2) {
+    throw std::invalid_argument("Only 2D tensors are supported");
+  }
+
+  std::vector<float> data;
+  for (int i = 0; i < this->shape[0]; i++) {
+    for (int j = 0; j < other.shape[1]; j++) {
+      float sum = 0;
+      for (int k = 0; k < this->shape[1]; k++) {
+        sum += this->data[i * this->shape[1] + k] *
+               other.data[k * other.shape[1] + j];
+      }
+      data.push_back(sum);
+    }
+  }
+  auto prev = std::vector<Tensor *>{this, &other};
+  auto out = Tensor(data, this->shape, prev);
+
+  auto backward = [&out, this, &other]() {
+    auto dC = out.grad;
+
+    std::vector<float> dA(this->shape[0] * this->shape[1], 0);
+    for (int i = 0; i < this->shape[0]; i++) {
+      for (int k = 0; k < other.shape[0]; k++) {
+        for (int j = 0; j < other.shape[1]; j++) {
+          dA[i * this->shape[1] + k] +=
+              dC[i * other.shape[1] + j] * other.data[k * other.shape[1] + j];
+        }
+      }
+    }
+
+    std::vector<float> dB(other.shape[0] * other.shape[1], 0);
+    for (int k = 0; k < this->shape[1]; k++) {
+      for (int i = 0; i < this->shape[0]; i++) {
+        for (int j = 0; j < other.shape[1]; j++) {
+          dB[k * other.shape[1] + j] +=
+              this->data[i * this->shape[1] + k] * dC[i * other.shape[1] + j];
+        }
+      }
+    }
+
+    this->grad = dA;
+    other.grad = dB;
+  };
+  out.backward = backward;
+
+  return out;
+}
+
 Tensor Tensor::tanh() {
   std::vector<float> data;
   for (int i = 0; i < this->data.size(); i++) {
@@ -121,5 +174,14 @@ void Tensor::backwards_no_set_grad() {
   this->backward();
   for (auto &t : this->prev) {
     t->backwards_no_set_grad();
+  }
+}
+
+void Tensor::clear_grad_recursive() {
+  for (int i = 0; i < this->grad.size(); i++) {
+    this->grad[i] = 0;
+  }
+  for (auto &t : this->prev) {
+    t->clear_grad_recursive();
   }
 }
