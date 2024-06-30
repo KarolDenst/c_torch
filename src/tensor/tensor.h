@@ -17,7 +17,7 @@ public:
 private:
   std::vector<float> data;
   std::vector<int> shape;
-  float grad;
+  std::vector<float> grad;
   std::function<void(void)> backward;
   std::vector<Tensor *> prev;
 
