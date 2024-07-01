@@ -25,6 +25,32 @@ TEST(TensorTest, Multiplication_ForMatchingShapes_Works) {
   EXPECT_EQ(sum.data, std::vector<float>({2, 8}));
 }
 
+TEST(TensorTest, MatrixMultiplication_ForMatchingShapes_Works) {
+  // arrange
+  auto t1 = Tensor({1.0, 2.0}, {1, 2});
+  auto t2 = Tensor({8.0, 6.0, 4.0, 2.0}, {2, 2});
+
+  // act
+  auto sum = t1 & t2;
+
+  // assert
+  EXPECT_EQ(sum.data, std::vector<float>({16.0, 10.0}));
+}
+
+TEST(TensorTest, MatrixMultiplicationBackward_ForMatchingShapes_Works) {
+  // arrange
+  auto t1 = Tensor({1.0, 2.0}, {1, 2});
+  auto t2 = Tensor({8.0, 6.0, 4.0, 2.0}, {2, 2});
+
+  // act
+  auto sum = t1 & t2;
+  sum.backwards();
+
+  // assert
+  EXPECT_EQ(t1.grad, std::vector<float>({14.0, 6.0}));
+  EXPECT_EQ(t2.grad, std::vector<float>({1.0, 1.0, 2.0, 2.0}));
+}
+
 TEST(TensorTest, Backwards_ForSingleValueTensors_Works) {
   // arrange
   auto x1 = Tensor({2.0}, {1});

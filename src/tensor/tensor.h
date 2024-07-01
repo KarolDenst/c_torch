@@ -11,7 +11,8 @@ public:
   std::vector<float> grad;
 
   Tensor(std::vector<float> data, std::vector<int> shape);
-  static Tensor Zeros(std::vector<int> shape);
+  static Tensor zeros(std::vector<int> shape);
+  static Tensor rand_n(std::vector<int> shape);
   void print(bool print_prev = false);
   Tensor operator+(Tensor &other);
   Tensor operator*(Tensor &other);

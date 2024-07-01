@@ -2,29 +2,35 @@
 #include <cmath>
 #include <iostream>
 #include <numeric>
+#include <random>
 #include <vector>
 
-Tensor::Tensor(std::vector<float> data, std::vector<int> shape) {
-  this->data = data;
-  this->shape = shape;
-  this->prev = std::vector<Tensor *>();
-  this->grad = std::vector<float>(data.size());
-  this->backward = []() {};
-}
+Tensor::Tensor(std::vector<float> data, std::vector<int> shape)
+    : data(data), shape(shape), prev(std::vector<Tensor *>()),
+      grad(std::vector<float>(data.size())), backward([]() {}) {}
 
 Tensor::Tensor(std::vector<float> data, std::vector<int> shape,
-               std::vector<Tensor *> prev) {
-  this->data = data;
-  this->shape = shape;
-  this->prev = prev;
-  this->grad = std::vector<float>(data.size());
-  this->backward = []() {};
-}
+               std::vector<Tensor *> prev)
+    : data(data), shape(shape), prev(prev),
+      grad(std::vector<float>(data.size())), backward([]() {}) {}
 
-Tensor Tensor::Zeros(std::vector<int> shape) {
+Tensor Tensor::zeros(std::vector<int> shape) {
   int size =
       std::accumulate(shape.begin(), shape.end(), 1, std::multiplies<int>());
   auto data = std::vector<float>(size);
+  return Tensor(data, shape);
+}
+
+Tensor Tensor::rand_n(std::vector<int> shape) {
+  std::random_device rd;
+  std::mt19937 gen(rd());
+  std::normal_distribution<> distr(0.0f, 1.0f);
+  int size =
+      std::accumulate(shape.begin(), shape.end(), 1, std::multiplies<int>());
+  auto data = std::vector<float>(size);
+  for (int i = 0; i < size; i++) {
+    data[i] = distr(gen);
+  }
   return Tensor(data, shape);
 }
 

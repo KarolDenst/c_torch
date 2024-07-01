@@ -7,6 +7,6 @@ t2.requires_grad = True
 
 sum = t1 @ t2
 print(sum)
-# sum.backward()
+sum.sum().backward()
 print(t1.grad)
 print(t2.grad)
