@@ -58,7 +58,7 @@ void Tensor::print(bool print_prev) {
 
 Tensor Tensor::operator+(Tensor &other) {
   if (!equal(this->shape.begin(), this->shape.end(), other.shape.begin())) {
-    throw std::invalid_argument("Shape mismatch");
+    throw std::invalid_argument("Shape mismatch. + requires the same shape.");
   }
   std::vector<float> data;
   for (int i = 0; i < this->data.size(); i++) {
@@ -78,9 +78,31 @@ Tensor Tensor::operator+(Tensor &other) {
   return out;
 }
 
+Tensor Tensor::operator-(Tensor &other) {
+  if (!equal(this->shape.begin(), this->shape.end(), other.shape.begin())) {
+    throw std::invalid_argument("Shape mismatch. - requires the same shape.");
+  }
+  std::vector<float> data;
+  for (int i = 0; i < this->data.size(); i++) {
+    data.push_back(this->data[i] - other.data[i]);
+  }
+  auto prev = std::vector<Tensor *>{this, &other};
+  auto out = Tensor(data, this->shape, prev);
+
+  auto backward = [&out]() {
+    for (int i = 0; i < out.grad.size(); i++) {
+      out.prev[0]->grad[i] -= out.grad[i];
+      out.prev[1]->grad[i] -= out.grad[i];
+    }
+  };
+  out.backward = backward;
+
+  return out;
+}
+
 Tensor Tensor::operator*(Tensor &other) {
   if (!equal(this->shape.begin(), this->shape.end(), other.shape.begin())) {
-    throw std::invalid_argument("Shape mismatch");
+    throw std::invalid_argument("Shape mismatch. * requires the same shape.");
   }
   std::vector<float> data;
   for (int i = 0; i < this->data.size(); i++) {
@@ -90,6 +112,9 @@ Tensor Tensor::operator*(Tensor &other) {
   auto out = Tensor(data, this->shape, prev);
 
   auto backward = [&out, this, &other]() {
+    std::cout << "Backward\n" << out.grad.size() << "\n";
+    std::cout << out.prev[0]->data.size() << "\n";
+    std::cout << out.prev[1]->data.size() << "\n";
     for (int i = 0; i < out.grad.size(); i++) {
       out.prev[0]->grad[i] += other.data[i] * out.grad[i];
       out.prev[1]->grad[i] += this->data[i] * out.grad[i];
@@ -100,14 +125,40 @@ Tensor Tensor::operator*(Tensor &other) {
   return out;
 }
 
+Tensor Tensor::operator/(Tensor &other) {
+  if (this->data.size() % other.data.size() != 0) {
+    throw std::invalid_argument("Shape mismatch for / operator.");
+  }
+
+  std::vector<float> data;
+  for (int i = 0; i < this->data.size(); i++) {
+    data.push_back(this->data[i] / other.data[i % other.data.size()]);
+  }
+  auto prev = std::vector<Tensor *>{this, &other};
+  auto out = Tensor(data, this->shape, prev);
+
+  auto backward = [&out, this, &other]() {
+    for (int i = 0; i < out.grad.size(); i++) {
+      out.prev[0]->grad[i] += 1.0 / (other.data[i]) * out.grad[i];
+      out.prev[1]->grad[i % other.data.size()] +=
+          -this->data[i] / (other.data[i] * other.data[i] + EPS) * out.grad[i];
+    }
+  };
+  out.backward = backward;
+
+  return out;
+}
+
 Tensor Tensor::operator&(Tensor &other) {
   if (this->shape.back() != other.shape.front()) {
-    throw std::invalid_argument("Shape mismatch");
+    throw std::invalid_argument("Shape mismatch. & requires last dim to match "
+                                "first dim of the other tensor.");
   }
   if (this->shape.size() != 2 || other.shape.size() != 2) {
     throw std::invalid_argument("Only 2D tensors are supported");
   }
 
+  std::vector<int> shape = {this->shape[0], other.shape[1]};
   std::vector<float> data;
   for (int i = 0; i < this->shape[0]; i++) {
     for (int j = 0; j < other.shape[1]; j++) {
@@ -120,7 +171,7 @@ Tensor Tensor::operator&(Tensor &other) {
     }
   }
   auto prev = std::vector<Tensor *>{this, &other};
-  auto out = Tensor(data, this->shape, prev);
+  auto out = Tensor(data, shape, prev);
 
   auto backward = [&out, this, &other]() {
     auto dC = out.grad;
@@ -169,6 +220,52 @@ Tensor Tensor::tanh() {
   return out;
 }
 
+Tensor Tensor::exp() {
+  std::vector<float> data;
+  for (int i = 0; i < this->data.size(); i++) {
+    data.push_back(std::exp(this->data[i]));
+  }
+  auto prev = std::vector<Tensor *>{this};
+  auto out = Tensor(data, this->shape, prev);
+  auto backward = [&out]() {
+    for (int i = 0; i < out.grad.size(); i++) {
+      out.prev[0]->grad[i] += out.grad[i] * out.data[i];
+    }
+  };
+  out.backward = backward;
+  return out;
+}
+
+Tensor Tensor::log() {
+  std::vector<float> data;
+  for (int i = 0; i < this->data.size(); i++) {
+    data.push_back(std::log(this->data[i]));
+  }
+  auto prev = std::vector<Tensor *>{this};
+  auto out = Tensor(data, this->shape, prev);
+  auto backward = [this, &out]() {
+    for (int i = 0; i < out.grad.size(); i++) {
+      out.prev[0]->grad[i] += out.grad[i] * 1.0 / (this->data[i] + EPS);
+    }
+  };
+  out.backward = backward;
+  return out;
+}
+
+Tensor Tensor::sum() {
+  std::vector<float> data = {
+      std::accumulate(this->data.begin(), this->data.end(), 0.0f)};
+  auto prev = std::vector<Tensor *>{this};
+  auto out = Tensor(data, {1}, prev);
+  auto backward = [&out]() {
+    for (int i = 0; i < out.prev[0]->data.size(); i++) {
+      out.prev[0]->grad[i] += out.prev[0]->data[i] * out.grad[0];
+    }
+  };
+  out.backward = backward;
+  return out;
+}
+
 void Tensor::backwards() {
   for (int i = 0; i < this->grad.size(); i++) {
     this->grad[i] = 1;
@@ -177,6 +274,7 @@ void Tensor::backwards() {
 }
 
 void Tensor::backwards_no_set_grad() {
+  this->print();
   this->backward();
   for (auto &t : this->prev) {
     t->backwards_no_set_grad();

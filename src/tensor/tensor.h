@@ -4,6 +4,8 @@
 #include <functional>
 #include <vector>
 
+const float EPS = 1e-7;
+
 class Tensor {
 public:
   std::vector<float> data;
@@ -15,9 +17,14 @@ public:
   static Tensor rand_n(std::vector<int> shape);
   void print(bool print_prev = false);
   Tensor operator+(Tensor &other);
+  Tensor operator-(Tensor &other);
   Tensor operator*(Tensor &other);
+  Tensor operator/(Tensor &other);
   Tensor operator&(Tensor &other);
   Tensor tanh();
+  Tensor log();
+  Tensor exp();
+  Tensor sum();
   void backwards();
   void clear_grad_recursive();
 
