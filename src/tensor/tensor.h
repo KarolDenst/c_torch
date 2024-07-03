@@ -2,6 +2,7 @@
 #define TENSOR_H
 
 #include <functional>
+#include <string>
 #include <vector>
 
 const float EPS = 1e-7;
@@ -11,8 +12,10 @@ public:
   std::vector<float> data;
   std::vector<int> shape;
   std::vector<float> grad;
+  std::string name;
 
-  Tensor(std::vector<float> data, std::vector<int> shape);
+  Tensor(std::vector<float> data, std::vector<int> shape,
+         std::string name = "");
   static Tensor zeros(std::vector<int> shape);
   static Tensor rand_n(std::vector<int> shape);
   void print(bool print_prev = false);
@@ -33,7 +36,7 @@ private:
   std::vector<Tensor *> prev;
 
   Tensor(std::vector<float> data, std::vector<int> shape,
-         std::vector<Tensor *> prev);
+         std::vector<Tensor *> prev, std::string name = "");
   void backwards_no_set_grad();
 };
 

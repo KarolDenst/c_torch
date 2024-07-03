@@ -32,9 +32,11 @@ int main() {
     int num = distr(gen);
     auto data = get_tensor(num);
     auto expected = get_tensor(num);
+    expected.name = "expected";
 
     optimizer.zero_grad();
     auto result = model.forward(data);
+    result.name = "result";
     auto loss = cross_entropy(result, expected);
     loss.backwards();
     std::cout << "Iteration " << i << " Loss: " << loss.data[0] << "\n";
