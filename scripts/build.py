@@ -11,7 +11,7 @@ if not os.path.exists(full_folder_path):
 
 parser = argparse.ArgumentParser(description="A script to build the project.")
 
-parser.add_argument("--cmake", help="Run CMake.", action="store_true")
+parser.add_argument("--release", help="Build in release mode.", action="store_true")
 parser.add_argument(
     "--run", help="Run the program after the build.", action="store_true"
 )
@@ -21,8 +21,18 @@ parser.add_argument(
 
 args = parser.parse_args()
 
-if args.cmake:
-    subprocess.run(["cmake", "-G", "Ninja", ".."], check=True, cwd=full_folder_path)
+if args.release:
+    subprocess.run(
+        ["cmake", "-G", "Ninja", "-DCMAKE_BUILD_TYPE=Release", ".."],
+        check=True,
+        cwd=full_folder_path,
+    )
+else:
+    subprocess.run(
+        ["cmake", "-G", "Ninja", "-DCMAKE_BUILD_TYPE=Debug", ".."],
+        check=True,
+        cwd=full_folder_path,
+    )
 
 subprocess.run(["ninja"], check=True, cwd=full_folder_path)
 

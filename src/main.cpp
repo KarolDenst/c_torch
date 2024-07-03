@@ -35,11 +35,9 @@ int main() {
 
     optimizer.zero_grad();
     auto result = model.forward(data);
-    auto loss = cross_entropy(std::make_shared<Tensor>(result),
-                              std::make_shared<Tensor>(expected));
-    // auto loss = cross_entropy(result, expected);
-    loss->backwards();
-    std::cout << "Iteration " << i << " Loss: " << loss->data[0] << "\n";
+    auto loss = cross_entropy(result, expected);
+    loss.backwards();
+    std::cout << "Iteration " << i << " Loss: " << loss.data[0] << "\n";
     optimizer.step();
   }
 
