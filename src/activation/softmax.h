@@ -5,10 +5,10 @@
 
 class Softmax : public Module {
 public:
-  Tensor forward(Tensor &data) {
-    Tensor exps = data.exp();
-    Tensor sum = exps.sum();
-    return exps / sum;
+  Tensor *forward(Tensor *data) {
+    auto exps = new Tensor(data->exp());
+    auto sum = new Tensor(exps->sum());
+    return new Tensor(*exps / *sum);
   }
 };
 

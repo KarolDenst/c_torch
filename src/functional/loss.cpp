@@ -1,6 +1,5 @@
 #include "loss.h"
 #include "../tensor/tensor.h"
-#include <memory>
 #include <stdexcept>
 
 Tensor cross_entropy(Tensor &output, Tensor &target) {
@@ -9,8 +8,9 @@ Tensor cross_entropy(Tensor &output, Tensor &target) {
         "output and target should have the same batch size");
   }
   auto number = static_cast<int>(output.data.size());
-  auto one = new Tensor(std::vector<float>(number, 1.0f), {1, number});
-  auto inverse = new Tensor(std::vector<float>(1, -1.0f / number), {1});
+  auto one = new Tensor(std::vector<float>(number, 1.0f), {1, number}, "one");
+  auto inverse =
+      new Tensor(std::vector<float>(1, -1.0f / number), {1}, "inverse");
 
   auto output_log = new Tensor(output.log());
   auto one_minus_output = new Tensor(*one - output);

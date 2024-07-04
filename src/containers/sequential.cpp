@@ -3,7 +3,7 @@
 
 Sequential::Sequential(std::vector<Module *> modules) : modules(modules) {}
 
-Tensor Sequential::forward(Tensor &data) {
+Tensor *Sequential::forward(Tensor *data) {
   auto result = data;
   for (auto &module : modules) {
     result = module->forward(result);

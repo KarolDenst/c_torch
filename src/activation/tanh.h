@@ -5,7 +5,7 @@
 
 class Tanh : public Module {
 public:
-  Tensor forward(Tensor &data) { return data.tanh(); }
+  Tensor *forward(Tensor *data) { return new Tensor(data->tanh()); }
 };
 
 #endif // TANH_H

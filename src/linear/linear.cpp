@@ -5,12 +5,16 @@ Linear::Linear(int in_features, int out_features, bool has_bias)
     : in_features(in_features), out_features(out_features), has_bias(has_bias),
       weights(Tensor::rand_n({in_features, out_features})),
       bias(has_bias ? std::make_optional(Tensor::zeros({1, out_features}))
-                    : std::nullopt) {}
-
-Tensor Linear::forward(Tensor &data) {
-  auto result = data & weights;
+                    : std::nullopt) {
+  weights.name = "weights";
   if (this->has_bias)
-    result = result + bias.value();
+    bias.value().name = "bias";
+}
+
+Tensor *Linear::forward(Tensor *data) {
+  auto result = new Tensor(*data & weights);
+  if (this->has_bias)
+    result = new Tensor(*result + bias.value());
   return result;
 }
 

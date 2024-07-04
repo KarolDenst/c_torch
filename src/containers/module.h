@@ -5,7 +5,7 @@
 
 class Module {
 public:
-  virtual Tensor forward(Tensor &data) = 0;
+  virtual Tensor *forward(Tensor *data) = 0;
   virtual std::vector<Tensor *> parameters() { return {}; }
 };
 

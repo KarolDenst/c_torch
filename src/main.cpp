@@ -6,7 +6,6 @@
 #include "optim/sgd.h"
 #include "tensor/tensor.h"
 #include <iostream>
-#include <memory>
 #include <ostream>
 #include <random>
 #include <vector>
@@ -19,7 +18,7 @@ Tensor get_tensor(int num) {
 }
 
 int main() {
-  int iterations = 10;
+  int iterations = 10000;
   float step = 0.01f;
   std::mt19937 gen(0);
   std::uniform_int_distribution<> distr(0, 9);
@@ -31,15 +30,21 @@ int main() {
   for (int i = 0; i < iterations; i++) {
     int num = distr(gen);
     auto data = get_tensor(num);
+    data.name = "data";
     auto expected = get_tensor(num);
     expected.name = "expected";
 
     optimizer.zero_grad();
-    auto result = model.forward(data);
-    result.name = "result";
-    auto loss = cross_entropy(result, expected);
+    auto result = model.forward(new Tensor(data));
+    auto loss = cross_entropy(*result, expected);
     loss.backwards();
-    std::cout << "Iteration " << i << " Loss: " << loss.data[0] << "\n";
+
+    if (i % 100 == 0) {
+      std::cout << "Iteration " << i << " Loss: " << loss.data[0] << "\n";
+      result->print();
+      expected.print();
+    }
+
     optimizer.step();
   }
 

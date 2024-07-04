@@ -8,7 +8,7 @@
 class Linear : public Module {
 public:
   Linear(int in_features, int out_features, bool has_bias = true);
-  Tensor forward(Tensor &data);
+  Tensor *forward(Tensor *data);
   std::vector<Tensor *> parameters();
 
 private:

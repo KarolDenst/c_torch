@@ -8,7 +8,7 @@ class Sequential : public Module {
 public:
   Sequential(std::vector<Module *> modules);
 
-  Tensor forward(Tensor &data);
+  Tensor *forward(Tensor *data);
   std::vector<Tensor *> parameters();
 
   void append(Module *module);

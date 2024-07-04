@@ -36,25 +36,27 @@ Tensor Tensor::rand_n(std::vector<int> shape) {
 }
 
 void Tensor::print(bool print_prev) {
-  std::cout << name << ": ";
+  std::cout << name;
+  std::cout << std::endl << "Data: ";
   for (auto i : this->data) {
     std::cout << i << " ";
   }
-  std::cout << "\nShape: ";
+  std::cout << std::endl << "Shape: ";
   for (auto i : this->shape) {
     std::cout << i << " ";
   }
-  std::cout << "Grad: ";
+  std::cout << std::endl << "Grad: ";
   for (auto i : this->grad) {
     std::cout << i << " ";
   }
-  std::cout << "\nPrev: \n";
   if (print_prev) {
+    std::cout << "\nPrev: \n";
     for (auto &t : this->prev) {
       t->print();
     }
   }
-  std::cout << "\n";
+  std::cout << std::endl;
+  std::cout << std::endl;
 }
 
 Tensor Tensor::operator+(Tensor &other) {
@@ -68,10 +70,10 @@ Tensor Tensor::operator+(Tensor &other) {
   auto prev = std::vector<Tensor *>{this, &other};
   auto out = Tensor(data, this->shape, prev, this->name + " + " + other.name);
 
-  auto backward = [&out]() {
+  auto backward = [this, &other, &out]() {
     for (int i = 0; i < out.grad.size(); i++) {
-      out.prev[0]->grad[i] += out.grad[i];
-      out.prev[1]->grad[i] += out.grad[i];
+      this->grad[i] += out.grad[i];
+      other.grad[i] += out.grad[i];
     }
   };
   out.backward = backward;
@@ -90,10 +92,10 @@ Tensor Tensor::operator-(Tensor &other) {
   auto prev = std::vector<Tensor *>{this, &other};
   auto out = Tensor(data, this->shape, prev, this->name + " - " + other.name);
 
-  auto backward = [&out]() {
+  auto backward = [this, &other, &out]() {
     for (int i = 0; i < out.grad.size(); i++) {
-      out.prev[0]->grad[i] -= out.grad[i];
-      out.prev[1]->grad[i] -= out.grad[i];
+      this->grad[i] += out.grad[i];
+      other.grad[i] -= out.grad[i];
     }
   };
   out.backward = backward;
@@ -137,9 +139,13 @@ Tensor Tensor::operator/(Tensor &other) {
 
   auto backward = [&out, this, &other]() {
     for (int i = 0; i < out.grad.size(); i++) {
-      out.prev[0]->grad[i] += 1.0 / (other.data[i]) * out.grad[i];
-      out.prev[1]->grad[i % other.data.size()] +=
-          -this->data[i] / (other.data[i] * other.data[i] + EPS) * out.grad[i];
+      this->grad[i] += 1.0 / (other.data[i % other.data.size()]) * out.grad[i];
+      other.grad[i % other.data.size()] +=
+          -this->data[i] /
+          (other.data[i % other.data.size()] *
+               other.data[i % other.data.size()] +
+           EPS) *
+          out.grad[i];
     }
   };
   out.backward = backward;
@@ -208,10 +214,10 @@ Tensor Tensor::tanh() {
     data.push_back(std::tanh(this->data[i]));
   }
   auto prev = std::vector<Tensor *>{this};
-  auto out = Tensor(data, this->shape, prev, this->name + " tanh");
-  auto backward = [&out]() {
+  auto out = Tensor(data, this->shape, prev, "tanh(" + this->name + ")");
+  auto backward = [this, &out]() {
     for (int i = 0; i < out.grad.size(); i++) {
-      out.prev[0]->grad[i] += out.grad[i] * (1 - out.data[i] * out.data[i]);
+      this->grad[i] += out.grad[i] * (1 - out.data[i] * out.data[i]);
     }
   };
   out.backward = backward;
@@ -224,10 +230,10 @@ Tensor Tensor::exp() {
     data.push_back(std::exp(this->data[i]));
   }
   auto prev = std::vector<Tensor *>{this};
-  auto out = Tensor(data, this->shape, prev, this->name + " exp");
-  auto backward = [&out]() {
+  auto out = Tensor(data, this->shape, prev, "exp(" + this->name + ")");
+  auto backward = [this, &out]() {
     for (int i = 0; i < out.grad.size(); i++) {
-      out.prev[0]->grad[i] += out.grad[i] * out.data[i];
+      this->grad[i] += out.grad[i] * out.data[i];
     }
   };
   out.backward = backward;
@@ -240,10 +246,10 @@ Tensor Tensor::log() {
     data.push_back(std::log(this->data[i]));
   }
   auto prev = std::vector<Tensor *>{this};
-  auto out = Tensor(data, this->shape, prev, this->name + " log");
+  auto out = Tensor(data, this->shape, prev, "log(" + this->name + ")");
   auto backward = [this, &out]() {
     for (int i = 0; i < out.grad.size(); i++) {
-      out.prev[0]->grad[i] += out.grad[i] * 1.0 / (this->data[i] + EPS);
+      this->grad[i] += out.grad[i] * 1.0 / (this->data[i] + EPS);
     }
   };
   out.backward = backward;
@@ -254,10 +260,10 @@ Tensor Tensor::sum() {
   std::vector<float> data = {
       std::accumulate(this->data.begin(), this->data.end(), 0.0f)};
   auto prev = std::vector<Tensor *>{this};
-  auto out = Tensor(data, {1}, prev, this->name + " sum");
-  auto backward = [&out]() {
+  auto out = Tensor(data, {1}, prev, "sum(" + this->name + ")");
+  auto backward = [this, &out]() {
     for (int i = 0; i < out.prev[0]->data.size(); i++) {
-      out.prev[0]->grad[i] += out.prev[0]->data[i] * out.grad[0];
+      this->grad[i] += out.grad[0];
     }
   };
   out.backward = backward;
@@ -272,7 +278,7 @@ void Tensor::backwards() {
 }
 
 void Tensor::backwards_no_set_grad() {
-  this->print();
+  // this->print();
   this->backward();
   for (auto &t : this->prev) {
     t->backwards_no_set_grad();
