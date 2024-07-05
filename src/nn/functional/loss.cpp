@@ -1,5 +1,5 @@
 #include "loss.h"
-#include "../tensor/tensor.h"
+#include "../../tensor/tensor.h"
 #include <stdexcept>
 
 using namespace tensor;

@@ -1,9 +1,10 @@
 #ifndef LINEAR_H
 #define LINEAR_H
 
+#include "../../tensor/tensor.h"
 #include "../containers/module.h"
-#include "../tensor/tensor.h"
 #include <optional>
+
 
 namespace nn {
 namespace linear {

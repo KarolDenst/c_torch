@@ -1,7 +1,7 @@
 #ifndef SGD_H
 #define SGD_H
 
-#include "../tensor/tensor.h"
+#include "../../tensor/tensor.h"
 #include "optimizer.h"
 
 using namespace tensor;

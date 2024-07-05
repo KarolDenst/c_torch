@@ -1,9 +1,9 @@
-#include "activation/softmax.h"
-#include "activation/tanh.h"
-#include "containers/sequential.h"
-#include "functional/loss.h"
-#include "linear/linear.h"
-#include "optim/sgd.h"
+#include "nn/activation/softmax.h"
+#include "nn/activation/tanh.h"
+#include "nn/containers/sequential.h"
+#include "nn/functional/loss.h"
+#include "nn/linear/linear.h"
+#include "nn/optim/sgd.h"
 #include "tensor.h"
 #include <iostream>
 #include <ostream>

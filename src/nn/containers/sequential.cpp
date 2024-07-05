@@ -1,7 +1,6 @@
 #include "sequential.h"
-#include "../tensor/tensor.h"
+#include "../../tensor/tensor.h"
 #include <vector>
-
 
 using namespace tensor;
 

@@ -1,9 +1,8 @@
 #ifndef SEQUENTIAL_H
 #define SEQUENTIAL_H
 
-#include "../tensor/tensor.h"
+#include "../../tensor/tensor.h"
 #include "module.h"
-
 
 namespace nn {
 namespace container {

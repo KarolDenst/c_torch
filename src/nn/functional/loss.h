@@ -1,7 +1,7 @@
 #ifndef LOSS_H
 #define LOSS_H
 
-#include "../tensor/tensor.h"
+#include "../../tensor/tensor.h"
 
 namespace nn {
 namespace functional {

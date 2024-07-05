@@ -1,7 +1,7 @@
 #ifndef MODULE_H
 #define MODULE_H
 
-#include "../tensor/tensor.h"
+#include "../../tensor/tensor.h"
 
 namespace nn {
 

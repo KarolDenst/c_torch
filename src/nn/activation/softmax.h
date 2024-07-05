@@ -1,8 +1,9 @@
 #ifndef SOFTMAX_H
 #define SOFTMAX_H
 
+#include "../../tensor/tensor.h"
 #include "../containers/module.h"
-#include "../tensor/tensor.h"
+
 
 namespace nn {
 namespace activation {
