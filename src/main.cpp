@@ -32,21 +32,19 @@ int main() {
     auto data = get_tensor(num);
     data.name = "data";
     auto expected = get_tensor(num);
+    expected.is_tmp = false;
     expected.name = "expected";
 
     optimizer.zero_grad();
     auto result = model.forward(new Tensor(data));
     auto loss = cross_entropy(*result, expected);
-    loss->backwards();
 
     if (i % 10000 == 0) {
       std::cout << "Iteration " << i << " Loss: " << loss->data[0] << "\n";
-      result->print();
-      expected.print();
     }
 
+    loss->backwards();
     optimizer.step();
-    loss->clear_grad_recursive();
   }
 
   return 0;

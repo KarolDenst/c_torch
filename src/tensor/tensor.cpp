@@ -276,7 +276,7 @@ Tensor Tensor::sum() {
   return out;
 }
 
-void Tensor::backwards() {
+void Tensor::backwards(bool clear_tmp) {
   auto topo = std::vector<Tensor *>();
   auto visited = std::unordered_set<Tensor *>();
   std::function<void(Tensor *)> build_topo = [&](Tensor *t) {
@@ -297,30 +297,7 @@ void Tensor::backwards() {
   std::reverse(topo.begin(), topo.end());
   for (Tensor *t : topo) {
     t->backward();
-  }
-}
-
-void Tensor::clear_grad_recursive() {
-  auto topo = std::vector<Tensor *>();
-  auto visited = std::unordered_set<Tensor *>();
-  std::function<void(Tensor *)> build_topo = [&](Tensor *t) {
-    if (visited.find(t) != visited.end()) {
-      return;
-    }
-    visited.insert(t);
-    for (Tensor *p : t->prev) {
-      build_topo(p);
-    }
-    topo.push_back(t);
-  };
-  build_topo(this);
-  std::reverse(topo.begin(), topo.end());
-  for (Tensor *t : topo) {
-    if (!t->is_tmp) {
-      for (int i = 0; i < t->grad.size(); i++) {
-        t->grad[i] = 0;
-      }
-    } else {
+    if (clear_tmp && t->is_tmp) {
       delete t;
       t = nullptr;
     }
