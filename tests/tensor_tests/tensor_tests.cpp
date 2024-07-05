@@ -2,6 +2,8 @@
 #include <gtest/gtest.h>
 #include <tensor/tensor.h>
 
+using namespace tensor;
+
 void ExpectVectorsNear(const std::vector<float> &expected,
                        const std::vector<float> &actual) {
   auto tolerance = 1.0e-4f;

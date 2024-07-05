@@ -3,6 +3,12 @@
 
 #include "../tensor/tensor.h"
 
-Tensor *cross_entropy(Tensor &output, Tensor &target);
+namespace nn {
+namespace functional {
+
+tensor::Tensor *cross_entropy(tensor::Tensor &output, tensor::Tensor &target);
+
+} // namespace functional
+} // namespace nn
 
 #endif // LOSS_H

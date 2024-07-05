@@ -3,18 +3,25 @@
 
 #include "../tensor/tensor.h"
 
+namespace nn {
+namespace optim {
+
 class Optimizer {
 public:
-  Optimizer(std::vector<Tensor *> parameters) : parameters(parameters) {}
+  Optimizer(std::vector<tensor::Tensor *> parameters)
+      : parameters(parameters) {}
   virtual void step() {}
   virtual void zero_grad() {
-    for (Tensor *parameter : parameters) {
+    for (tensor::Tensor *parameter : parameters) {
       std::fill(parameter->grad.begin(), parameter->grad.end(), 0.0f);
     }
   }
 
 protected:
-  std::vector<Tensor *> parameters;
+  std::vector<tensor::Tensor *> parameters;
 };
+
+} // namespace optim
+} // namespace nn
 
 #endif // OPTIMIZER_H

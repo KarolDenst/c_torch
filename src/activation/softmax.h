@@ -2,14 +2,21 @@
 #define SOFTMAX_H
 
 #include "../containers/module.h"
+#include "../tensor/tensor.h"
+
+namespace nn {
+namespace activation {
 
 class Softmax : public Module {
 public:
-  Tensor *forward(Tensor *data) {
-    auto exps = new Tensor(data->exp());
-    auto sum = new Tensor(exps->sum());
-    return new Tensor(*exps / *sum);
+  tensor::Tensor *forward(tensor::Tensor *data) {
+    auto exps = new tensor::Tensor(data->exp());
+    auto sum = new tensor::Tensor(exps->sum());
+    return new tensor::Tensor(*exps / *sum);
   }
 };
+
+} // namespace activation
+} // namespace nn
 
 #endif // SOFTMAX_H

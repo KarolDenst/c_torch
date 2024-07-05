@@ -4,17 +4,24 @@
 #include "../tensor/tensor.h"
 #include "module.h"
 
+
+namespace nn {
+namespace container {
+
 class Sequential : public Module {
 public:
   Sequential(std::vector<Module *> modules);
 
-  Tensor *forward(Tensor *data);
-  std::vector<Tensor *> parameters();
+  tensor::Tensor *forward(tensor::Tensor *data);
+  std::vector<tensor::Tensor *> parameters();
 
   void append(Module *module);
 
 private:
   std::vector<Module *> modules;
 };
+
+} // namespace container
+} // namespace nn
 
 #endif // SEQUENTIAL_H

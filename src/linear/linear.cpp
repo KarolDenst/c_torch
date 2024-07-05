@@ -1,5 +1,12 @@
 #include "linear.h"
+#include "../tensor/tensor.h"
 #include <vector>
+
+
+using namespace tensor;
+
+namespace nn {
+namespace linear {
 
 Linear::Linear(int in_features, int out_features, bool has_bias)
     : in_features(in_features), out_features(out_features), has_bias(has_bias),
@@ -26,3 +33,6 @@ std::vector<Tensor *> Linear::parameters() {
     params.push_back(&bias.value());
   return params;
 }
+
+} // namespace linear
+} // namespace nn

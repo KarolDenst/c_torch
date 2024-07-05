@@ -1,5 +1,12 @@
 #include "sequential.h"
+#include "../tensor/tensor.h"
 #include <vector>
+
+
+using namespace tensor;
+
+namespace nn {
+namespace container {
 
 Sequential::Sequential(std::vector<Module *> modules) : modules(modules) {}
 
@@ -21,3 +28,6 @@ std::vector<Tensor *> Sequential::parameters() {
 }
 
 void Sequential::append(Module *module) { modules.push_back(module); }
+
+} // namespace container
+} // namespace nn

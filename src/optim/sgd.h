@@ -4,6 +4,10 @@
 #include "../tensor/tensor.h"
 #include "optimizer.h"
 
+using namespace tensor;
+
+namespace nn {
+namespace optim {
 
 class SGD : public Optimizer {
 public:
@@ -20,5 +24,8 @@ public:
 private:
   float learning_rate;
 };
+
+} // namespace optim
+} // namespace nn
 
 #endif // SGD_H

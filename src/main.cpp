@@ -4,14 +4,14 @@
 #include "functional/loss.h"
 #include "linear/linear.h"
 #include "optim/sgd.h"
-#include "tensor/tensor.h"
+#include "tensor.h"
 #include <iostream>
 #include <ostream>
 #include <random>
 #include <vector>
 
-Tensor get_tensor(int num) {
-  auto t = Tensor::zeros({1, 10});
+tensor::Tensor get_tensor(int num) {
+  auto t = tensor::Tensor::zeros({1, 10});
   t.data[num] = 1.0f;
 
   return t;
@@ -23,9 +23,10 @@ int main() {
   std::mt19937 gen(0);
   std::uniform_int_distribution<> distr(0, 9);
 
-  auto model = Sequential(
-      {new Linear(10, 5), new Tanh(), new Linear(5, 10), new Softmax()});
-  auto optimizer = SGD(model.parameters());
+  auto model = nn::container::Sequential(
+      {new nn::linear::Linear(10, 5), new nn::activation::Tanh(),
+       new nn::linear::Linear(5, 10), new nn::activation::Softmax()});
+  auto optimizer = nn::optim::SGD(model.parameters());
 
   for (int i = 0; i < iterations; i++) {
     int num = distr(gen);
@@ -37,7 +38,7 @@ int main() {
 
     optimizer.zero_grad();
     auto result = model.forward(new Tensor(data));
-    auto loss = cross_entropy(*result, expected);
+    auto loss = nn::functional::cross_entropy(*result, expected);
 
     if (i % 10000 == 0) {
       std::cout << "Iteration " << i << " Loss: " << loss->data[0] << "\n";

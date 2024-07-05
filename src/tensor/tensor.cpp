@@ -6,6 +6,8 @@
 #include <unordered_set>
 #include <vector>
 
+namespace tensor {
+
 Tensor::Tensor(std::vector<float> data, std::vector<int> shape,
                std::string name, bool is_tmp)
     : data(data), shape(shape), name(name), is_tmp(is_tmp),
@@ -303,3 +305,5 @@ void Tensor::backwards(bool clear_tmp) {
     }
   }
 }
+
+} // namespace tensor

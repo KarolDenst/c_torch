@@ -5,6 +5,8 @@
 #include <string>
 #include <vector>
 
+namespace tensor {
+
 const float EPS = 1e-7;
 
 class Tensor {
@@ -38,5 +40,7 @@ private:
   Tensor(std::vector<float> data, std::vector<int> shape,
          std::vector<Tensor *> prev, std::string name = "", bool is_tmp = true);
 };
+
+} // namespace tensor
 
 #endif // TENSOR_H

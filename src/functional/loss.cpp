@@ -2,6 +2,11 @@
 #include "../tensor/tensor.h"
 #include <stdexcept>
 
+using namespace tensor;
+
+namespace nn {
+namespace functional {
+
 Tensor *cross_entropy(Tensor &output, Tensor &target) {
   if (output.shape[0] != target.shape[0]) {
     throw std::invalid_argument(
@@ -26,3 +31,6 @@ Tensor *cross_entropy(Tensor &output, Tensor &target) {
 
   return loss;
 }
+
+} // namespace functional
+} // namespace nn

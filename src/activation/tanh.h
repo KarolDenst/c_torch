@@ -3,9 +3,16 @@
 
 #include "../containers/module.h"
 
+namespace nn {
+namespace activation {
+
 class Tanh : public Module {
 public:
-  Tensor *forward(Tensor *data) { return new Tensor(data->tanh()); }
+  tensor::Tensor *forward(tensor::Tensor *data) {
+    return new tensor::Tensor(data->tanh());
+  }
 };
 
+} // namespace activation
+} // namespace nn
 #endif // TANH_H
