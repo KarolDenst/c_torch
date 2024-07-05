@@ -18,7 +18,7 @@ Tensor get_tensor(int num) {
 }
 
 int main() {
-  int iterations = 10000;
+  int iterations = 1000000;
   float step = 0.01f;
   std::mt19937 gen(0);
   std::uniform_int_distribution<> distr(0, 9);
@@ -37,15 +37,16 @@ int main() {
     optimizer.zero_grad();
     auto result = model.forward(new Tensor(data));
     auto loss = cross_entropy(*result, expected);
-    loss.backwards();
+    loss->backwards();
 
-    if (i % 100 == 0) {
-      std::cout << "Iteration " << i << " Loss: " << loss.data[0] << "\n";
+    if (i % 10000 == 0) {
+      std::cout << "Iteration " << i << " Loss: " << loss->data[0] << "\n";
       result->print();
       expected.print();
     }
 
     optimizer.step();
+    loss->clear_grad_recursive();
   }
 
   return 0;

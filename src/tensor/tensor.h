@@ -13,11 +13,12 @@ public:
   std::vector<int> shape;
   std::vector<float> grad;
   std::string name;
+  bool is_tmp;
 
-  Tensor(std::vector<float> data, std::vector<int> shape,
-         std::string name = "");
-  static Tensor zeros(std::vector<int> shape);
-  static Tensor rand_n(std::vector<int> shape);
+  Tensor(std::vector<float> data, std::vector<int> shape, std::string name = "",
+         bool is_tmp = false);
+  static Tensor zeros(std::vector<int> shape, bool is_tmp = false);
+  static Tensor rand_n(std::vector<int> shape, bool is_tmp = false);
   void print(bool print_prev = false);
   Tensor operator+(Tensor &other);
   Tensor operator-(Tensor &other);
@@ -36,8 +37,8 @@ private:
   std::vector<Tensor *> prev;
 
   Tensor(std::vector<float> data, std::vector<int> shape,
-         std::vector<Tensor *> prev, std::string name = "");
-  void backwards_no_set_grad();
+         std::vector<Tensor *> prev, std::string name = "",
+         bool is_tmp = false);
 };
 
 #endif // TENSOR_H

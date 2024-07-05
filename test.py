@@ -1,12 +1,25 @@
 import torch
 
-t1 = torch.tensor([[1, 2, 3, 4]], dtype=torch.float32)
-t2 = torch.tensor([[2, 4, 6, 8]], dtype=torch.float32)
-t1.requires_grad = True
-t2.requires_grad = True
+x0 = torch.tensor([-2], dtype=torch.float32)
+w1 = torch.tensor([-3], dtype=torch.float32)
+w2 = torch.tensor([4], dtype=torch.float32)
+x0.requires_grad = True
+w1.requires_grad = True
+w2.requires_grad = True
+x1 = x0 * w1
+x1.retain_grad()
+x1w1 = x1 * w1
+x1w1.retain_grad()
+x1w2 = x1 * w2
+x1w2.retain_grad()
+x1w1_x1w2 = x1w1 + x1w2
+x1w1_x1w2.retain_grad()
 
-result = t1 / t2
-result.sum().backward()
-print(result)
-print(t1.grad)
-print(t2.grad)
+x1w1_x1w2.sum().backward()
+print(x1w1_x1w2.grad)
+print(x1w2.grad)
+print(x1w1.grad)
+print(w2.grad)
+print(w1.grad)
+print(x1.grad)
+print(x0.grad)

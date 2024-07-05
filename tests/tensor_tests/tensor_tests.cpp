@@ -206,3 +206,42 @@ TEST(TensorTest, Backwards_ForSingleValueTensors_Works) {
   EXPECT_NEAR(w1.grad[0], 1.0, eps);
   EXPECT_NEAR(x1.grad[0], -1.5, eps);
 }
+
+TEST(TensorTest, Backwards_ForBranchingModel_Works) {
+  // arrange
+  auto x0 = Tensor({-2.0}, {1});
+  auto w1 = Tensor({-3.0}, {1});
+  auto x1 = x0 * w1;
+  auto w2 = Tensor({4.0}, {1});
+  auto x1w1 = x1 * w1;
+  auto x1w2 = x1 * w2;
+  auto x1w1_x1w2 = x1w1 + x1w2;
+
+  auto eps = 1.0e-5;
+
+  // act
+  x1w1_x1w2.backwards();
+
+  // assert
+  EXPECT_NEAR(x1w1_x1w2.grad[0], 1, eps);
+  EXPECT_NEAR(x1w2.grad[0], 1, eps);
+  EXPECT_NEAR(x1w1.grad[0], 1, eps);
+  EXPECT_NEAR(w2.grad[0], 6, eps);
+  EXPECT_NEAR(w1.grad[0], 4, eps);
+  EXPECT_NEAR(x1.grad[0], 1, eps);
+  EXPECT_NEAR(x0.grad[0], -3, eps);
+}
+
+TEST(TensorTest, CopyConstructor_CopiesData_1to1) {
+  // arrange
+  auto t = Tensor({1.0, 2.0, 3.0, 4.0}, {2, 2});
+  t.grad = {4.0, 3.0, 2.0, 1.0};
+
+  // act
+  auto copy = new Tensor(t);
+
+  // assert
+  ExpectVectorsNear(t.data, copy->data);
+  ExpectVectorsNear(t.grad, copy->grad);
+  EXPECT_EQ(t.is_tmp, copy->is_tmp);
+}

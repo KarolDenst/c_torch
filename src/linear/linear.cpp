@@ -3,9 +3,10 @@
 
 Linear::Linear(int in_features, int out_features, bool has_bias)
     : in_features(in_features), out_features(out_features), has_bias(has_bias),
-      weights(Tensor::rand_n({in_features, out_features})),
-      bias(has_bias ? std::make_optional(Tensor::zeros({1, out_features}))
-                    : std::nullopt) {
+      weights(Tensor::rand_n({in_features, out_features}, false)),
+      bias(has_bias
+               ? std::make_optional(Tensor::zeros({1, out_features}, false))
+               : std::nullopt) {
   weights.name = "weights";
   if (this->has_bias)
     bias.value().name = "bias";

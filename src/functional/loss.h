@@ -3,6 +3,6 @@
 
 #include "../tensor/tensor.h"
 
-Tensor cross_entropy(Tensor &output, Tensor &target);
+Tensor *cross_entropy(Tensor &output, Tensor &target);
 
 #endif // LOSS_H
