@@ -31,10 +31,10 @@ public:
   Tensor log();
   Tensor exp();
   Tensor sum();
-  void backwards(bool clear_tmp = true);
+  void backward(bool clear_tmp = true);
 
 private:
-  std::function<void(void)> backward;
+  std::function<void(void)> back;
   std::vector<Tensor *> prev;
 
   Tensor(std::vector<float> data, std::vector<int> shape,

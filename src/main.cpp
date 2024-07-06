@@ -44,7 +44,7 @@ int main() {
       std::cout << "Iteration " << i << " Loss: " << loss->data[0] << "\n";
     }
 
-    loss->backwards();
+    loss->backward();
     optimizer.step();
   }
 

@@ -12,12 +12,12 @@ Tensor::Tensor(std::vector<float> data, std::vector<int> shape,
                std::string name, bool is_tmp)
     : data(data), shape(shape), name(name), is_tmp(is_tmp),
       prev(std::vector<Tensor *>()), grad(std::vector<float>(data.size())),
-      backward([]() {}) {}
+      back([]() {}) {}
 
 Tensor::Tensor(std::vector<float> data, std::vector<int> shape,
                std::vector<Tensor *> prev, std::string name, bool is_tmp)
     : data(data), shape(shape), name(name), is_tmp(is_tmp), prev(prev),
-      grad(std::vector<float>(data.size())), backward([]() {}) {}
+      grad(std::vector<float>(data.size())), back([]() {}) {}
 
 Tensor Tensor::zeros(std::vector<int> shape, bool is_tmp) {
   int size =
@@ -81,7 +81,7 @@ Tensor Tensor::operator+(Tensor &other) {
       other.grad[i] += out.grad[i];
     }
   };
-  out.backward = backward;
+  out.back = backward;
 
   return out;
 }
@@ -104,7 +104,7 @@ Tensor Tensor::operator-(Tensor &other) {
       other.grad[i] -= out.grad[i];
     }
   };
-  out.backward = backward;
+  out.back = backward;
 
   return out;
 }
@@ -127,7 +127,7 @@ Tensor Tensor::operator*(Tensor &other) {
       other.grad[i] += this->data[i] * out.grad[i];
     }
   };
-  out.backward = backward;
+  out.back = backward;
 
   return out;
 }
@@ -156,7 +156,7 @@ Tensor Tensor::operator/(Tensor &other) {
           out.grad[i];
     }
   };
-  out.backward = backward;
+  out.back = backward;
 
   return out;
 }
@@ -211,7 +211,7 @@ Tensor Tensor::operator&(Tensor &other) {
     this->grad = dA;
     other.grad = dB;
   };
-  out.backward = backward;
+  out.back = backward;
 
   return out;
 }
@@ -228,7 +228,7 @@ Tensor Tensor::tanh() {
       this->grad[i] += out.grad[i] * (1 - out.data[i] * out.data[i]);
     }
   };
-  out.backward = backward;
+  out.back = backward;
   return out;
 }
 
@@ -244,7 +244,7 @@ Tensor Tensor::exp() {
       this->grad[i] += out.grad[i] * out.data[i];
     }
   };
-  out.backward = backward;
+  out.back = backward;
   return out;
 }
 
@@ -260,7 +260,7 @@ Tensor Tensor::log() {
       this->grad[i] += out.grad[i] * 1.0 / (this->data[i] + EPS);
     }
   };
-  out.backward = backward;
+  out.back = backward;
   return out;
 }
 
@@ -274,11 +274,11 @@ Tensor Tensor::sum() {
       this->grad[i] += out.grad[0];
     }
   };
-  out.backward = backward;
+  out.back = backward;
   return out;
 }
 
-void Tensor::backwards(bool clear_tmp) {
+void Tensor::backward(bool clear_tmp) {
   auto topo = std::vector<Tensor *>();
   auto visited = std::unordered_set<Tensor *>();
   std::function<void(Tensor *)> build_topo = [&](Tensor *t) {
@@ -298,7 +298,7 @@ void Tensor::backwards(bool clear_tmp) {
   build_topo(this);
   std::reverse(topo.begin(), topo.end());
   for (Tensor *t : topo) {
-    t->backward();
+    t->back();
     if (clear_tmp && t->is_tmp) {
       delete t;
       t = nullptr;

@@ -22,7 +22,7 @@ TEST(TensorTest, Addition_ForMatchingShapes_Works) {
 
   // act
   auto result = t1 + t2;
-  result.backwards();
+  result.backward(false);
 
   // assert
   ExpectVectorsNear(result.data, std::vector<float>({3, 6, 9, 12}));
@@ -37,7 +37,7 @@ TEST(TensorTest, Subtraction_ForMatchingShapes_Works) {
 
   // act
   auto result = t1 - t2;
-  result.backwards();
+  result.backward(false);
 
   // assert
   ExpectVectorsNear(result.data, std::vector<float>({-1, -2, -3, -4}));
@@ -52,7 +52,7 @@ TEST(TensorTest, Multiplication_ForMatchingShapes_Works) {
 
   // act
   auto result = t1 * t2;
-  result.backwards();
+  result.backward(false);
 
   // assert
   ExpectVectorsNear(result.data, std::vector<float>({2, 8, 18, 32}));
@@ -67,7 +67,7 @@ TEST(TensorTest, Division_ForMatchingShapes_Works) {
 
   // act
   auto result = t1 / t2;
-  result.backwards();
+  result.backward(false);
 
   // assert
   ExpectVectorsNear(result.data, std::vector<float>({0.5, 0.5, 0.5, 0.5}));
@@ -84,7 +84,7 @@ TEST(TensorTest, Division_ForCorrectShapes_Works) {
 
   // act
   auto result = t1 / t2;
-  result.backwards();
+  result.backward(false);
 
   // assert
   ExpectVectorsNear(result.data, std::vector<float>({0.1, 0.2, 0.3, 0.4}));
@@ -111,7 +111,7 @@ TEST(TensorTest, MatrixMultiplicationBackward_ForMatchingShapes_Works) {
 
   // act
   auto result = t1 & t2;
-  result.backwards();
+  result.backward(false);
 
   // assert
   ExpectVectorsNear(t1.grad, std::vector<float>({14.0, 6.0}));
@@ -124,7 +124,7 @@ TEST(TensorTest, Tanh_Works) {
 
   // act
   auto result = t.tanh();
-  result.backwards();
+  result.backward(false);
 
   // assert
   ExpectVectorsNear(result.data,
@@ -140,7 +140,7 @@ TEST(TensorTest, Exp_Works) {
 
   // act
   auto result = t.exp();
-  result.backwards();
+  result.backward(false);
 
   // assert
   ExpectVectorsNear(result.data,
@@ -155,7 +155,7 @@ TEST(TensorTest, Log_Works) {
 
   // act
   auto result = t.log();
-  result.backwards();
+  result.backward(false);
 
   // assert
   ExpectVectorsNear(result.data,
@@ -171,14 +171,14 @@ TEST(TensorTest, Sum_Works) {
 
   // act
   auto result = t.sum();
-  result.backwards();
+  result.backward(false);
 
   // assert
   ExpectVectorsNear(result.data, std::vector<float>({10.0}));
   ExpectVectorsNear(t.grad, std::vector<float>({1.0, 1.0, 1.0, 1.0}));
 }
 
-TEST(TensorTest, Backwards_ForSingleValueTensors_Works) {
+TEST(TensorTest, backward_ForSingleValueTensors_Works) {
   // arrange
   auto x1 = Tensor({2.0}, {1});
   auto x2 = Tensor({0.0}, {1});
@@ -194,7 +194,7 @@ TEST(TensorTest, Backwards_ForSingleValueTensors_Works) {
   auto eps = 1.0e-5;
 
   // act
-  o.backwards();
+  o.backward(false);
 
   // assert
   EXPECT_NEAR(o.grad[0], 1.0, eps);
@@ -209,7 +209,7 @@ TEST(TensorTest, Backwards_ForSingleValueTensors_Works) {
   EXPECT_NEAR(x1.grad[0], -1.5, eps);
 }
 
-TEST(TensorTest, Backwards_ForBranchingModel_Works) {
+TEST(TensorTest, backward_ForBranchingModel_Works) {
   // arrange
   auto x0 = Tensor({-2.0}, {1});
   auto w1 = Tensor({-3.0}, {1});
@@ -222,7 +222,7 @@ TEST(TensorTest, Backwards_ForBranchingModel_Works) {
   auto eps = 1.0e-5;
 
   // act
-  x1w1_x1w2.backwards();
+  x1w1_x1w2.backward(false);
 
   // assert
   EXPECT_NEAR(x1w1_x1w2.grad[0], 1, eps);
