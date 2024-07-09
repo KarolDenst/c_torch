@@ -26,6 +26,10 @@ Tensor Tensor::zeros(std::vector<int> shape, bool is_tmp) {
   return Tensor(data, shape, "zeros", is_tmp);
 }
 
+Tensor Tensor::zeros_like(const Tensor &tensor, bool is_tmp) {
+  return zeros(tensor.shape, is_tmp);
+}
+
 Tensor Tensor::rand_n(std::vector<int> shape, bool is_tmp) {
   std::random_device rd;
   std::mt19937 gen(rd());
@@ -61,6 +65,30 @@ void Tensor::print(bool print_prev) {
   }
   std::cout << std::endl;
   std::cout << std::endl;
+}
+
+template <std::size_t N> float &Tensor::get_data(const int (&indices)[N]) {
+  static_assert(N == this->shape.size(),
+                "Index array size must match the tensor shape size.");
+  int index = 0;
+  int stride = 1;
+  for (int i = shape.size() - 1; i >= 0; --i) {
+    index += indices[i] * stride;
+    stride *= shape[i];
+  }
+  return this->data[index];
+}
+
+template <std::size_t N> float &Tensor::get_grad(const int (&indices)[N]) {
+  static_assert(N == this->shape.size(),
+                "Index array size must match the tensor shape size.");
+  int index = 0;
+  int stride = 1;
+  for (int i = shape.size() - 1; i >= 0; --i) {
+    index += indices[i] * stride;
+    stride *= shape[i];
+  }
+  return this->grad[index];
 }
 
 Tensor Tensor::operator+(Tensor &other) {
