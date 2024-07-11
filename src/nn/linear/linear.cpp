@@ -1,6 +1,9 @@
 #include "linear.h"
 #include "../../tensor/tensor.h"
+#include "../functional/tensor_func.h"
+#include <cmath>
 #include <vector>
+
 
 using namespace tensor;
 
@@ -9,7 +12,9 @@ namespace linear {
 
 Linear::Linear(int in_features, int out_features, bool has_bias)
     : in_features(in_features), out_features(out_features), has_bias(has_bias),
-      weights(Tensor::rand_n({in_features, out_features}, false)),
+      weights(functional::uniform({in_features, out_features},
+                                  -1.0f / std::sqrt(in_features),
+                                  1.0f / std::sqrt(in_features), false)),
       bias(has_bias
                ? std::make_optional(Tensor::zeros({1, out_features}, false))
                : std::nullopt) {

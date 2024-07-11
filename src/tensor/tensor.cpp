@@ -1,4 +1,6 @@
 #include "tensor.h"
+#include <algorithm>
+#include <cassert>
 #include <cmath>
 #include <iostream>
 #include <numeric>
@@ -46,21 +48,27 @@ Tensor Tensor::rand_n(std::vector<int> shape, bool is_tmp) {
 void Tensor::print(bool print_prev) {
   std::cout << name;
   std::cout << std::endl << "Data: ";
-  for (auto i : this->data) {
-    std::cout << i << " ";
+  for (int i = 0; i < std::min(static_cast<int>(this->data.size()), 10); i++) {
+    std::cout << this->data[i] << " ";
+  }
+  if (this->grad.size() > 10) {
+    std::cout << "...";
   }
   std::cout << std::endl << "Shape: ";
   for (auto i : this->shape) {
     std::cout << i << " ";
   }
   std::cout << std::endl << "Grad: ";
-  for (auto i : this->grad) {
-    std::cout << i << " ";
+  for (int i = 0; i < std::min(static_cast<int>(this->grad.size()), 10); i++) {
+    std::cout << this->grad[i] << " ";
+  }
+  if (this->grad.size() > 10) {
+    std::cout << "...";
   }
   if (print_prev) {
     std::cout << "\nPrev: \n";
     for (auto &t : this->prev) {
-      t->print();
+      t->print(print_prev);
     }
   }
   std::cout << std::endl;
@@ -304,6 +312,15 @@ Tensor Tensor::sum() {
   };
   out.back = backward;
   return out;
+}
+
+void Tensor::view(std::vector<int> shape) {
+  auto dim1 =
+      std::accumulate(shape.begin(), shape.end(), 1, std::multiplies<int>());
+  auto dim2 = std::accumulate(this->shape.begin(), this->shape.end(), 1,
+                              std::multiplies<int>());
+  assert(dim1 == dim2);
+  this->shape = shape;
 }
 
 void Tensor::backward(bool clear_tmp) {

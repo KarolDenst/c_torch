@@ -8,9 +8,8 @@ namespace nn {
 namespace functional {
 
 Tensor *cross_entropy(Tensor &output, Tensor &target) {
-  if (output.shape[0] != target.shape[0]) {
-    throw std::invalid_argument(
-        "output and target should have the same batch size");
+  if (output.data.size() != target.data.size()) {
+    throw std::invalid_argument("output and target should have the same size");
   }
   auto number = static_cast<int>(output.data.size());
   auto one =

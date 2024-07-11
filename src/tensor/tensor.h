@@ -14,7 +14,7 @@ public:
   std::vector<float> data;
   std::vector<int> shape;
   std::vector<float> grad;
-  std::string name;
+  std::string name = "";
   bool is_tmp;
   std::function<void(void)> back;
   std::vector<Tensor *> prev;
@@ -38,6 +38,7 @@ public:
   Tensor log();
   Tensor exp();
   Tensor sum();
+  void view(std::vector<int> shape);
   void backward(bool clear_tmp = true);
 
 private:
