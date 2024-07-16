@@ -2,10 +2,10 @@
 #include "nn/activation/tanh.h"
 #include "nn/containers/sequential.h"
 #include "nn/functional/loss.h"
-#include "nn/functional/tensor_func.h"
 #include "nn/linear/linear.h"
 #include "nn/optim/sgd.h"
 #include "tensor.h"
+#include "tensor/tensor_create.h"
 #include "utils/data/csv_reader.h"
 #include <iostream>
 #include <ostream>
@@ -34,7 +34,7 @@ int main() {
   auto labels = csv_reader.pop("label");
 
   auto y_transform = [](const std::string &label) {
-    auto result = nn::functional::one_hot(std::stoi(label), 10, false);
+    auto result = tensor::one_hot(std::stoi(label), 10, false);
     result.view({1, 10});
     return result;
   };

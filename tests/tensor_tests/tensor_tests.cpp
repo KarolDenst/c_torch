@@ -1,6 +1,7 @@
+#include "../../src/tensor/tensor.h"
+#include "../../src/tensor/tensor_func.h"
 #include <cmath>
 #include <gtest/gtest.h>
-#include <tensor/tensor.h>
 
 using namespace tensor;
 
@@ -123,7 +124,7 @@ TEST(TensorTest, Tanh_Works) {
   auto t = Tensor({1.0, 2.0, 3.0, 4.0}, {2, 2});
 
   // act
-  auto result = t.tanh();
+  auto result = tanh(&t);
   result.backward(false);
 
   // assert
@@ -139,7 +140,7 @@ TEST(TensorTest, Exp_Works) {
   auto t = Tensor({1.0, 2.0, 3.0, 4.0}, {2, 2});
 
   // act
-  auto result = t.exp();
+  auto result = exp(&t);
   result.backward(false);
 
   // assert
@@ -154,7 +155,7 @@ TEST(TensorTest, Log_Works) {
   auto t = Tensor({1.0, 2.0, 3.0, 4.0}, {2, 2});
 
   // act
-  auto result = t.log();
+  auto result = log(&t);
   result.backward(false);
 
   // assert
@@ -170,7 +171,7 @@ TEST(TensorTest, Sum_Works) {
   auto t = Tensor({1.0, 2.0, 3.0, 4.0}, {2, 2});
 
   // act
-  auto result = t.sum();
+  auto result = sum(&t);
   result.backward(false);
 
   // assert
@@ -189,7 +190,7 @@ TEST(TensorTest, backward_ForSingleValueTensors_Works) {
   auto x2w2 = x2 * w2;
   auto x1w1_x2w2 = x1w1 + x2w2;
   auto n = x1w1_x2w2 + b;
-  auto o = n.tanh();
+  auto o = tanh(&n);
 
   auto eps = 1.0e-5;
 
