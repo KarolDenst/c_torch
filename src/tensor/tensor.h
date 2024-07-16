@@ -40,6 +40,7 @@ public:
   Tensor sum();
   void view(std::vector<int> shape);
   void backward(bool clear_tmp = true);
+  void clear_tmp();
 
 private:
 };

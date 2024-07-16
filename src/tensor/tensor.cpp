@@ -351,4 +351,28 @@ void Tensor::backward(bool clear_tmp) {
   }
 }
 
+void Tensor::clear_tmp() {
+  auto topo = std::vector<Tensor *>();
+  auto visited = std::unordered_set<Tensor *>();
+  std::function<void(Tensor *)> build_topo = [&](Tensor *t) {
+    if (visited.find(t) != visited.end()) {
+      return;
+    }
+    visited.insert(t);
+    for (Tensor *p : t->prev) {
+      build_topo(p);
+    }
+    topo.push_back(t);
+  };
+
+  build_topo(this);
+  std::reverse(topo.begin(), topo.end());
+  for (Tensor *t : topo) {
+    if (t->is_tmp) {
+      delete t;
+      t = nullptr;
+    }
+  }
+}
+
 } // namespace tensor
