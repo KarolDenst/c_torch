@@ -1,10 +1,8 @@
 #include "tensor.h"
 #include <algorithm>
 #include <cassert>
-#include <cmath>
 #include <iostream>
 #include <numeric>
-#include <random>
 #include <unordered_set>
 #include <vector>
 

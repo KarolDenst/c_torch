@@ -7,9 +7,9 @@
 #include "tensor.h"
 #include "tensor/tensor_create.h"
 #include "utils/data/csv_reader.h"
+#include <algorithm>
 #include <iostream>
 #include <ostream>
-#include <random>
 #include <string>
 #include <vector>
 #include <windows.h>

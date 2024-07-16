@@ -2,7 +2,6 @@
 #define TENSOR_FUNC_H
 
 #include "tensor.h"
-#include <vector>
 
 namespace tensor {
 
