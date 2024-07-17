@@ -1,20 +1,9 @@
 #include "../../src/tensor/tensor.h"
 #include "../../src/tensor/tensor_func.h"
-#include <cmath>
+#include "tensor_utils.h"
 #include <gtest/gtest.h>
 
 using namespace tensor;
-
-void ExpectVectorsNear(const std::vector<float> &expected,
-                       const std::vector<float> &actual) {
-  auto tolerance = 1.0e-4f;
-  ASSERT_EQ(expected.size(), actual.size()) << "Vectors are of unequal length";
-
-  for (size_t i = 0; i < expected.size(); ++i) {
-    EXPECT_NEAR(expected[i], actual[i], tolerance)
-        << "Vectors differ at index " << i;
-  }
-}
 
 TEST(TensorTest, Addition_ForMatchingShapes_Works) {
   // arrange
@@ -117,66 +106,6 @@ TEST(TensorTest, MatrixMultiplicationBackward_ForMatchingShapes_Works) {
   // assert
   ExpectVectorsNear(t1.grad, std::vector<float>({14.0, 6.0}));
   ExpectVectorsNear(t2.grad, std::vector<float>({1.0, 1.0, 2.0, 2.0}));
-}
-
-TEST(TensorTest, Tanh_Works) {
-  // arrange
-  auto t = Tensor({1.0, 2.0, 3.0, 4.0}, {2, 2});
-
-  // act
-  auto result = tanh(&t);
-  result.backward(false);
-
-  // assert
-  ExpectVectorsNear(result.data,
-                    std::vector<float>({std::tanh(1.0f), std::tanh(2.0f),
-                                        std::tanh(3.0f), std::tanh(4.0f)}));
-  ExpectVectorsNear(t.grad,
-                    std::vector<float>({0.4200, 0.0707, 0.0099, 0.0013}));
-}
-
-TEST(TensorTest, Exp_Works) {
-  // arrange
-  auto t = Tensor({1.0, 2.0, 3.0, 4.0}, {2, 2});
-
-  // act
-  auto result = exp(&t);
-  result.backward(false);
-
-  // assert
-  ExpectVectorsNear(result.data,
-                    std::vector<float>({std::exp(1.0f), std::exp(2.0f),
-                                        std::exp(3.0f), std::exp(4.0f)}));
-  ExpectVectorsNear(t.grad, result.data);
-}
-
-TEST(TensorTest, Log_Works) {
-  // arrange
-  auto t = Tensor({1.0, 2.0, 3.0, 4.0}, {2, 2});
-
-  // act
-  auto result = log(&t);
-  result.backward(false);
-
-  // assert
-  ExpectVectorsNear(result.data,
-                    std::vector<float>({std::log(1.0f), std::log(2.0f),
-                                        std::log(3.0f), std::log(4.0f)}));
-  ExpectVectorsNear(t.grad,
-                    std::vector<float>({1.0, 1.0 / 2, 1.0 / 3, 1.0 / 4}));
-}
-
-TEST(TensorTest, Sum_Works) {
-  // arrange
-  auto t = Tensor({1.0, 2.0, 3.0, 4.0}, {2, 2});
-
-  // act
-  auto result = sum(&t);
-  result.backward(false);
-
-  // assert
-  ExpectVectorsNear(result.data, std::vector<float>({10.0}));
-  ExpectVectorsNear(t.grad, std::vector<float>({1.0, 1.0, 1.0, 1.0}));
 }
 
 TEST(TensorTest, backward_ForSingleValueTensors_Works) {

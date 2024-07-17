@@ -1,7 +1,7 @@
 #include "tensor.h"
 #include <cmath>
 #include <numeric>
-
+#include <optional>
 
 namespace tensor {
 
@@ -56,7 +56,7 @@ Tensor log(Tensor *tensor) {
   return out;
 }
 
-Tensor sum(Tensor *tensor) {
+Tensor sum(Tensor *tensor, std::optional<int> dim) {
   std::vector<float> data = {
       std::accumulate(tensor->data.begin(), tensor->data.end(), 0.0f)};
   auto prev = std::vector<Tensor *>{tensor};
