@@ -1,7 +1,7 @@
 #include "loss.h"
 #include "../../tensor/tensor.h"
 #include "../../tensor/tensor_func.h"
-#include <stdexcept>
+#include <cassert>
 
 using namespace tensor;
 
@@ -9,12 +9,10 @@ namespace nn {
 namespace functional {
 
 Tensor *cross_entropy(Tensor &output, Tensor &target) {
-  if (output.data.size() != target.data.size()) {
-    throw std::invalid_argument("output and target should have the same size");
-  }
+  assert(output.data.size() == target.data.size());
   auto number = static_cast<int>(output.data.size());
   auto one =
-      new Tensor(std::vector<float>(number, 1.0f), {1, number}, "one", true);
+      new Tensor(std::vector<float>(number, 1.0f), {number}, "one", true);
   auto inverse =
       new Tensor(std::vector<float>(1, -1.0f / number), {1}, "inverse", true);
 

@@ -37,7 +37,7 @@ else:
 subprocess.run(["ninja"], check=True, cwd=full_folder_path)
 
 if args.run:
-    subprocess.run([".\\TensorC.exe"], check=True, cwd=full_folder_path, shell=True)
+    subprocess.run([".\\CTorch.exe"], check=True, cwd=full_folder_path, shell=True)
 
 if args.test:
     subprocess.run(

@@ -36,6 +36,11 @@ public:
   void clear_tmp();
 
 private:
+  static Tensor
+  transform(Tensor *first, Tensor *second,
+            void (*front)(Tensor *, Tensor *, Tensor *, int, int, int),
+            void (*back)(Tensor *, Tensor *, Tensor *, int, int, int),
+            std::string name = "");
 };
 
 } // namespace tensor

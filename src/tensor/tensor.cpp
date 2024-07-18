@@ -74,101 +74,48 @@ template <std::size_t N> float &Tensor::get_grad(const int (&indices)[N]) {
 }
 
 Tensor Tensor::operator+(Tensor &other) {
-  if (!equal(this->shape.begin(), this->shape.end(), other.shape.begin())) {
-    throw std::invalid_argument("Shape mismatch. + requires the same shape.");
-  }
-  std::vector<float> data;
-  for (int i = 0; i < this->data.size(); i++) {
-    data.push_back(this->data[i] + other.data[i]);
-  }
-  auto prev = std::vector<Tensor *>{this, &other};
-  auto out =
-      Tensor(data, this->shape, prev, this->name + " + " + other.name, true);
-
-  auto backward = [this, &other, &out]() {
-    for (int i = 0; i < out.grad.size(); i++) {
-      this->grad[i] += out.grad[i];
-      other.grad[i] += out.grad[i];
-    }
+  auto front = [](Tensor *first, Tensor *second, Tensor *out, int i, int j,
+                  int k) { out->data[k] = first->data[i] + second->data[j]; };
+  auto back = [](Tensor *first, Tensor *second, Tensor *out, int i, int j,
+                 int k) {
+    first->grad[i] += out->grad[k];
+    second->grad[j] += out->grad[k];
   };
-  out.back = backward;
-
-  return out;
+  return transform(this, &other, front, back, "+");
 }
 
 Tensor Tensor::operator-(Tensor &other) {
-  if (!equal(this->shape.begin(), this->shape.end(), other.shape.begin())) {
-    throw std::invalid_argument("Shape mismatch. - requires the same shape.");
-  }
-  std::vector<float> data;
-  for (int i = 0; i < this->data.size(); i++) {
-    data.push_back(this->data[i] - other.data[i]);
-  }
-  auto prev = std::vector<Tensor *>{this, &other};
-  auto out =
-      Tensor(data, this->shape, prev, this->name + " - " + other.name, true);
-
-  auto backward = [this, &other, &out]() {
-    for (int i = 0; i < out.grad.size(); i++) {
-      this->grad[i] += out.grad[i];
-      other.grad[i] -= out.grad[i];
-    }
+  auto front = [](Tensor *first, Tensor *second, Tensor *out, int i, int j,
+                  int k) { out->data[k] = first->data[i] - second->data[j]; };
+  auto back = [](Tensor *first, Tensor *second, Tensor *out, int i, int j,
+                 int k) {
+    first->grad[i] += out->grad[k];
+    second->grad[j] -= out->grad[k];
   };
-  out.back = backward;
-
-  return out;
+  return transform(this, &other, front, back, "-");
 }
 
 Tensor Tensor::operator*(Tensor &other) {
-  if (!equal(this->shape.begin(), this->shape.end(), other.shape.begin())) {
-    throw std::invalid_argument("Shape mismatch. * requires the same shape.");
-  }
-  std::vector<float> data;
-  for (int i = 0; i < this->data.size(); i++) {
-    data.push_back(this->data[i] * other.data[i]);
-  }
-  auto prev = std::vector<Tensor *>{this, &other};
-  auto out =
-      Tensor(data, this->shape, prev, this->name + " * " + other.name, true);
-
-  auto backward = [this, &other, &out]() {
-    for (int i = 0; i < out.grad.size(); i++) {
-      this->grad[i] += other.data[i] * out.grad[i];
-      other.grad[i] += this->data[i] * out.grad[i];
-    }
+  auto front = [](Tensor *first, Tensor *second, Tensor *out, int i, int j,
+                  int k) { out->data[k] = first->data[i] * second->data[j]; };
+  auto back = [](Tensor *first, Tensor *second, Tensor *out, int i, int j,
+                 int k) {
+    first->grad[i] += second->data[j] * out->grad[k];
+    second->grad[j] += first->data[i] * out->grad[k];
   };
-  out.back = backward;
-
-  return out;
+  return transform(this, &other, front, back, "*");
 }
 
 Tensor Tensor::operator/(Tensor &other) {
-  if (this->data.size() % other.data.size() != 0) {
-    throw std::invalid_argument("Shape mismatch for / operator.");
-  }
-
-  std::vector<float> data;
-  for (int i = 0; i < this->data.size(); i++) {
-    data.push_back(this->data[i] / other.data[i % other.data.size()]);
-  }
-  auto prev = std::vector<Tensor *>{this, &other};
-  auto out =
-      Tensor(data, this->shape, prev, this->name + " / " + other.name, true);
-
-  auto backward = [&out, this, &other]() {
-    for (int i = 0; i < out.grad.size(); i++) {
-      this->grad[i] += 1.0 / (other.data[i % other.data.size()]) * out.grad[i];
-      other.grad[i % other.data.size()] +=
-          -this->data[i] /
-          (other.data[i % other.data.size()] *
-               other.data[i % other.data.size()] +
-           EPS) *
-          out.grad[i];
-    }
+  auto front = [](Tensor *first, Tensor *second, Tensor *out, int i, int j,
+                  int k) { out->data[k] = first->data[i] / second->data[j]; };
+  auto back = [](Tensor *first, Tensor *second, Tensor *out, int i, int j,
+                 int k) {
+    first->grad[i] += 1.0 / (second->data[j]) * out->grad[k];
+    second->grad[j] +=
+        -first->data[i] / (second->data[j] * second->data[j]) * out->grad[k];
   };
-  out.back = backward;
-
-  return out;
+  return transform(this, &other, front, back, "/");
 }
 
 Tensor Tensor::operator&(Tensor &other) {
@@ -285,6 +232,51 @@ void Tensor::clear_tmp() {
       t = nullptr;
     }
   }
+}
+
+Tensor
+Tensor::transform(Tensor *first, Tensor *second,
+                  void (*front)(Tensor *, Tensor *, Tensor *, int, int, int),
+                  void (*back)(Tensor *, Tensor *, Tensor *, int, int, int),
+                  std::string name) {
+  Tensor *larger;
+  if (first->data.size() >= second->data.size()) {
+    assert(first->data.size() % second->data.size() == 0);
+    larger = first;
+  } else {
+    assert(second->data.size() % first->data.size() == 0);
+    larger = second;
+  }
+
+  auto out = Tensor(std::vector<float>(larger->data.size()), larger->shape,
+                    std::vector<Tensor *>{first, second},
+                    first->name + name + second->name, true);
+  int i = 0, j = 0;
+  for (int k = 0; k < out.data.size(); k++) {
+    if (i == first->data.size())
+      i = 0;
+    if (j == second->data.size())
+      j = 0;
+    front(first, second, &out, i, j, k);
+    i++;
+    j++;
+  }
+
+  auto backward = [first, second, &out, back]() {
+    int i = 0, j = 0;
+    for (int k = 0; k < out.data.size(); k++) {
+      if (i == first->data.size())
+        i = 0;
+      if (j == second->data.size())
+        j = 0;
+      back(first, second, &out, i, j, k);
+      i++;
+      j++;
+    }
+  };
+  out.back = backward;
+
+  return out;
 }
 
 } // namespace tensor

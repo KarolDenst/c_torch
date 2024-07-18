@@ -14,9 +14,8 @@ Linear::Linear(int in_features, int out_features, bool has_bias)
       weights(tensor::uniform({in_features, out_features},
                               -1.0f / std::sqrt(in_features),
                               1.0f / std::sqrt(in_features), false)),
-      bias(has_bias
-               ? std::make_optional(tensor::zeros({1, out_features}, false))
-               : std::nullopt) {
+      bias(has_bias ? std::make_optional(tensor::zeros({out_features}, false))
+                    : std::nullopt) {
   weights.name = "weights";
   if (this->has_bias)
     bias.value().name = "bias";

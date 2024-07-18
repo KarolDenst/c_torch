@@ -20,6 +20,23 @@ TEST(TensorTest, Addition_ForMatchingShapes_Works) {
   ExpectVectorsNear(t2.grad, std::vector<float>({1, 1, 1, 1}));
 }
 
+TEST(TensorTest, Addition_ForFirstLargerThanSecond_BoardcastingWorks) {
+  // arrange
+  auto t1 = Tensor(std::vector<float>({1, 2, 3, 4}), std::vector<int>({2, 2}));
+  auto t2 = Tensor(std::vector<float>({5, 6}), std::vector<int>({2}));
+
+  // act
+  auto result = t1 + t2;
+  auto result2 = t2 + t1;
+  result.backward(false);
+
+  // assert
+  ExpectVectorsNear(result.data, std::vector<float>({6, 8, 8, 10}));
+  ExpectVectorsNear(result.data, result2.data);
+  ExpectVectorsNear(t1.grad, std::vector<float>({1, 1, 1, 1}));
+  ExpectVectorsNear(t2.grad, std::vector<float>({2, 2}));
+}
+
 TEST(TensorTest, Subtraction_ForMatchingShapes_Works) {
   // arrange
   auto t1 = Tensor(std::vector<float>({1, 2, 3, 4}), std::vector<int>({2, 2}));
