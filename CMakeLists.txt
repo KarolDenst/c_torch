@@ -4,6 +4,13 @@ project(CTorch)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED True)
 
+find_program(CLANGXX NAMES clang++)
+if(CLANGXX)
+  set(CMAKE_CXX_COMPILER ${CLANGXX})
+else()
+  message(FATAL_ERROR "clang++ not found. Please install clang.")
+endif()
+
 set(SRC_DIR ${CMAKE_SOURCE_DIR}/src)
 file(GLOB_RECURSE SOURCE_FILES ${SRC_DIR}/*.cpp)
 list(FILTER SOURCE_FILES EXCLUDE REGEX ".*main.cpp$")

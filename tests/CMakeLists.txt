@@ -1,3 +1,4 @@
+set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)
 set(GOOGLETEST_DIR ${CMAKE_SOURCE_DIR}/external/googletest)
 add_subdirectory(${GOOGLETEST_DIR} ${CMAKE_BINARY_DIR}/googletest)
 include_directories(${GOOGLETEST_DIR}/googletest/include)

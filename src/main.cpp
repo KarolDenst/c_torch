@@ -31,7 +31,7 @@ int get_max_index(tensor::Tensor tensor) {
 int main() {
   // Setup Training Data
   std::string exe_path = get_executable_path();
-  std::string train_path = exe_path + "..\\data\\train.csv";
+  std::string train_path = exe_path + "..\\..\\data\\train.csv";
   auto csv_reader = utils::data::CSVReader(train_path);
   auto labels = csv_reader.pop("label");
 
