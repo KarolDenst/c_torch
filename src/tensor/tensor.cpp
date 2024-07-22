@@ -119,22 +119,29 @@ Tensor Tensor::operator/(Tensor &other) {
 }
 
 Tensor Tensor::operator&(Tensor &other) {
-  if (this->shape.back() != other.shape.front()) {
-    throw std::invalid_argument("Shape mismatch. & requires last dim to match "
-                                "first dim of the other tensor.");
-  }
-  if (this->shape.size() != 2 || other.shape.size() != 2) {
-    throw std::invalid_argument("Only 2D tensors are supported");
-  }
+  assert(this->shape.back() == other.shape.front());
+  auto shape1 =
+      std::vector<int>{static_cast<int>(this->data.size() / this->shape.back()),
+                       this->shape.back()};
+  auto shape2 = std::vector<int>{
+      other.shape.front(),
+      static_cast<int>(other.data.size() / other.shape.front())};
 
-  std::vector<int> shape = {this->shape[0], other.shape[1]};
+  auto shape = std::vector<int>(this->shape.size() + other.shape.size() - 2);
+  for (int i = 0; i < shape.size(); i++) {
+    if (i < this->shape.size() - 1)
+      shape[i] = this->shape[i];
+    else {
+      int j = i - this->shape.size() + 2;
+      shape[i] = other.shape[j];
+    }
+  }
   std::vector<float> data;
-  for (int i = 0; i < this->shape[0]; i++) {
-    for (int j = 0; j < other.shape[1]; j++) {
+  for (int i = 0; i < shape1[0]; i++) {
+    for (int j = 0; j < shape2[1]; j++) {
       float sum = 0;
-      for (int k = 0; k < this->shape[1]; k++) {
-        sum += this->data[i * this->shape[1] + k] *
-               other.data[k * other.shape[1] + j];
+      for (int k = 0; k < shape1[1]; k++) {
+        sum += this->data[i * shape1[1] + k] * other.data[k * shape2[1] + j];
       }
       data.push_back(sum);
     }
@@ -142,25 +149,25 @@ Tensor Tensor::operator&(Tensor &other) {
   auto prev = std::vector<Tensor *>{this, &other};
   auto out = Tensor(data, shape, prev, this->name + " & " + other.name, true);
 
-  auto backward = [&out, this, &other]() {
+  auto backward = [&out, this, &other, shape1, shape2]() {
     auto dC = out.grad;
 
-    std::vector<float> dA(this->shape[0] * this->shape[1], 0);
-    for (int i = 0; i < this->shape[0]; i++) {
-      for (int k = 0; k < other.shape[0]; k++) {
-        for (int j = 0; j < other.shape[1]; j++) {
-          dA[i * this->shape[1] + k] +=
-              dC[i * other.shape[1] + j] * other.data[k * other.shape[1] + j];
+    std::vector<float> dA(shape1[0] * shape1[1], 0);
+    for (int i = 0; i < shape1[0]; i++) {
+      for (int k = 0; k < shape2[0]; k++) {
+        for (int j = 0; j < shape2[1]; j++) {
+          dA[i * shape1[1] + k] +=
+              dC[i * shape2[1] + j] * other.data[k * shape2[1] + j];
         }
       }
     }
 
-    std::vector<float> dB(other.shape[0] * other.shape[1], 0);
-    for (int k = 0; k < this->shape[1]; k++) {
-      for (int i = 0; i < this->shape[0]; i++) {
-        for (int j = 0; j < other.shape[1]; j++) {
-          dB[k * other.shape[1] + j] +=
-              this->data[i * this->shape[1] + k] * dC[i * other.shape[1] + j];
+    std::vector<float> dB(shape2[0] * shape2[1], 0);
+    for (int k = 0; k < shape1[1]; k++) {
+      for (int i = 0; i < shape1[0]; i++) {
+        for (int j = 0; j < shape2[1]; j++) {
+          dB[k * shape2[1] + j] +=
+              this->data[i * shape1[1] + k] * dC[i * shape2[1] + j];
         }
       }
     }

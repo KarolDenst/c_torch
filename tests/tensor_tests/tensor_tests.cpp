@@ -1,4 +1,5 @@
 #include "../../src/tensor/tensor.h"
+#include "../../src/tensor/tensor_create.h"
 #include "../../src/tensor/tensor_func.h"
 #include "tensor_utils.h"
 #include <gtest/gtest.h>
@@ -109,6 +110,32 @@ TEST(TensorTest, MatrixMultiplication_ForMatchingShapes_Works) {
 
   // assert
   ExpectVectorsNear(result.data, std::vector<float>({16.0, 10.0}));
+  EXPECT_EQ(result.shape, std::vector<int>({1, 2}));
+}
+
+TEST(TensorTest, MatrixMultiplication_ForVectorAndVector_Works) {
+  // arrange
+  auto t1 = Tensor({1.0, 2.0}, {1, 2});
+  auto t2 = Tensor({1.0, 2.0}, {2, 1});
+
+  // act
+  auto result = t1 & t2;
+
+  // assert
+  ExpectVectorsNear(result.data, std::vector<float>({5}));
+  EXPECT_EQ(result.shape, std::vector<int>({1, 1}));
+}
+
+TEST(TensorTest, MatrixMultiplication_ForMatchingShapes_AssignsCorrectShape) {
+  // arrange
+  auto t1 = zeros({1, 10});
+  auto t2 = zeros({10, 5});
+
+  // act
+  auto result = t1 & t2;
+
+  // assert
+  EXPECT_EQ(result.shape, std::vector<int>({1, 5}));
 }
 
 TEST(TensorTest, MatrixMultiplicationBackward_ForMatchingShapes_Works) {

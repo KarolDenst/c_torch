@@ -13,6 +13,7 @@ class Tensor {
 public:
   std::vector<float> data;
   std::vector<int> shape;
+  std::vector<int> strides;
   std::vector<float> grad;
   std::string name = "";
   bool is_tmp;

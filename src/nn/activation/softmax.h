@@ -10,11 +10,16 @@ namespace activation {
 
 class Softmax : public Module {
 public:
+  Softmax(std::optional<int> dim = std::nullopt) { this->dim = dim; }
+
   tensor::Tensor *forward(tensor::Tensor *data) {
     auto exps = new tensor::Tensor(tensor::exp(data));
-    auto sum = new tensor::Tensor(tensor::sum(exps));
+    auto sum = new tensor::Tensor(tensor::sum(exps, dim));
     return new tensor::Tensor(*exps / *sum);
   }
+
+private:
+  std::optional<int> dim;
 };
 
 } // namespace activation
