@@ -124,4 +124,21 @@ Tensor sum(Tensor *tensor, std::optional<int> dim, bool keepdim) {
   return out;
 }
 
+Tensor mean(Tensor *tensor) {
+  auto number = static_cast<float>(tensor->data.size());
+  auto data = std::vector<float>(
+      1,
+      std::accumulate(tensor->data.begin(), tensor->data.end(), 0.0) / number);
+
+  auto prev = std::vector<Tensor *>{tensor};
+  auto out = Tensor(data, {1}, prev, "mean(" + tensor->name + ")", true);
+  auto backward = [tensor, &out]() {
+    for (int i = 0; i < out.grad.size(); i++) {
+      tensor->grad[i] += out.grad[i] * 1.0 / tensor->data.size();
+    }
+  };
+  out.back = backward;
+  return out;
+}
+
 } // namespace tensor

@@ -80,3 +80,17 @@ TEST(TensorFunTest, Sum_ForSpecifiedDim_Works) {
   ExpectVectorsNear(t.grad, std::vector<float>({1.0, 1.0, 1.0, 1.0}));
   EXPECT_EQ(result.shape, std::vector<int>({2}));
 }
+
+TEST(TensorFunTest, Sum_ForSpecifiedDimWithKeepdim_Works) {
+  // arrange
+  auto t = Tensor({1.0, 2.0, 3.0, 4.0}, {2, 2});
+
+  // act
+  auto result = sum(&t, 1, true);
+  result.backward(false);
+
+  // assert
+  ExpectVectorsNear(result.data, std::vector<float>({3, 7}));
+  ExpectVectorsNear(t.grad, std::vector<float>({1.0, 1.0, 1.0, 1.0}));
+  EXPECT_EQ(result.shape, std::vector<int>({2, 1}));
+}

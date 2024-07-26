@@ -67,14 +67,20 @@ int main() {
   csv_reader.~CSVReader();
 
   // Define Model and parameters
+  int input_size = 28 * 28;
+  int num_classes = 10;
   auto model = nn::container::Sequential({
-      new nn::linear::Linear(28 * 28, 512), new nn::activation::Tanh(),
-      new nn::linear::Linear(512, 128), new nn::activation::Tanh(),
-      new nn::linear::Linear(128, 10),
-      // new nn::activation::Softmax(1)
+      new nn::linear::Linear(input_size, 512),
+      new nn::activation::Tanh(),
+      new nn::linear::Linear(512, 128),
+      new nn::activation::Tanh(),
+      new nn::linear::Linear(128, num_classes),
   });
 
   auto optimizer = nn::optim::Adam(model.parameters(), 0.001f);
+  auto criterion = [](Tensor &x, Tensor &y) {
+    return nn::functional::cross_entropy(x, y, "mean");
+  };
   const int epochs = 1;
   const int batch_size = 32;
 
@@ -97,7 +103,7 @@ int main() {
       y.is_tmp = false;
 
       auto result = model.forward(new Tensor(x));
-      auto loss = nn::functional::mse_loss(*result, y);
+      auto loss = criterion(*result, y);
 
       if ((batch * batch_size) % 3200 == 0) {
         std::cout << "Epoch: " << epoch << ", Iteration " << batch
@@ -131,7 +137,7 @@ int main() {
       accuracy++;
     }
 
-    auto loss = nn::functional::cross_entropy(*result, y);
+    auto loss = criterion(*result, y);
     avg_loss += loss->data[0];
     loss->clear_tmp();
   }

@@ -12,6 +12,7 @@ Tensor log(Tensor *tensor);
 Tensor exp(Tensor *tensor);
 Tensor sum(Tensor *tensor, std::optional<int> dim = std::nullopt,
            bool keepdim = false);
+Tensor mean(Tensor *tensor);
 
 } // namespace tensor
 

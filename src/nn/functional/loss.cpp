@@ -9,7 +9,7 @@ using namespace tensor;
 namespace nn {
 namespace functional {
 
-Tensor *cross_entropy(Tensor &output, Tensor &target) {
+Tensor *binary_cross_entropy(Tensor &output, Tensor &target) {
   assert(output.data.size() == target.data.size());
   auto number = static_cast<int>(output.data.size());
   auto one =
@@ -29,6 +29,28 @@ Tensor *cross_entropy(Tensor &output, Tensor &target) {
   auto loss = new Tensor(*inverse * *sum);
 
   return loss;
+}
+
+tensor::Tensor *cross_entropy(tensor::Tensor &output, tensor::Tensor &target,
+                              std::string reduction) {
+  if (output.shape.size() == 1)
+    output.view({1, output.shape[0]});
+  auto exp = new Tensor(tensor::exp(&output));
+  auto sum = new Tensor(tensor::sum(exp, 1));
+  auto log = new Tensor(tensor::log(sum));
+  auto mul = new Tensor(
+      output * target); // -input[i, target[i]] for one hot encoded target
+  auto mul_sum = new Tensor(tensor::sum(mul, 1));
+  auto result = new Tensor(*log - *mul_sum);
+
+  if (reduction == "mean")
+    return new Tensor(tensor::mean(result));
+  else if (reduction == "sum")
+    return new Tensor(tensor::mean(result));
+  else if (reduction == "")
+    return result;
+  else
+    throw std::invalid_argument("Invalid reduction");
 }
 
 Tensor *mse_loss(Tensor &output, Tensor &target, std::string reduction) {

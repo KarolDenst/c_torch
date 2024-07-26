@@ -154,6 +154,7 @@ TEST(TensorTest, MatrixMultiplicationBackward_ForMatchingShapes_Works) {
 }
 
 TEST(TensorTest, MatrixMultiplication_ForTensors_Works) {
+  throw std::runtime_error("Test not working");
   // arrange
   auto t1 = Tensor({8, 6, 4, 2, 0, -2, -4, -6}, {2, 2, 2});
   auto t2 = Tensor({1, 2, 3, 4, 5, 6, 7, 8}, {2, 2, 2});
@@ -255,7 +256,7 @@ TEST(TensorTest, Backward_ForLinearLayerBatchedData_Works) {
   auto wx = x & w;
   auto wx_b = wx + b;
   auto o = tanh(&wx_b);
-  auto loss = nn::functional::mse_loss(o, y);
+  auto loss = nn::functional::mse_loss(o, y, "sum");
   loss->backward(false);
 
   // assert
