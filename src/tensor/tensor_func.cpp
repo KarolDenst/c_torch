@@ -23,6 +23,25 @@ Tensor tanh(Tensor *tensor) {
   return out;
 }
 
+Tensor relu(Tensor *tensor) {
+  auto data = std::vector<float>(tensor->data.size());
+  for (int i = 0; i < tensor->data.size(); i++) {
+    data[i] = std::max(0.0f, tensor->data[i]);
+  }
+  auto prev = std::vector<Tensor *>{tensor};
+  auto out =
+      Tensor(data, tensor->shape, prev, "tanh(" + tensor->name + ")", true);
+  auto backward = [tensor, &out]() {
+    for (int i = 0; i < out.grad.size(); i++) {
+      if (out.data[i] > 0) {
+        tensor->grad[i] += out.grad[i];
+      }
+    }
+  };
+  out.back = backward;
+  return out;
+}
+
 Tensor exp(Tensor *tensor) {
   std::vector<float> data;
   for (int i = 0; i < tensor->data.size(); i++) {
@@ -57,7 +76,7 @@ Tensor log(Tensor *tensor) {
   return out;
 }
 
-Tensor sum(Tensor *tensor, std::optional<int> dim) {
+Tensor sum(Tensor *tensor, std::optional<int> dim, bool keepdim) {
   assert(dim < tensor->shape.size());
   auto shape = std::vector<int>(3, 1);
   if (!dim.has_value()) {
@@ -82,14 +101,20 @@ Tensor sum(Tensor *tensor, std::optional<int> dim) {
       }
     }
   }
-  // TODO: fix shape for tensors with 1D and 2D shapes
-  auto prev = std::vector<Tensor *>{tensor};
-  auto out = Tensor(data, shape, prev, "sum(" + tensor->name + ")", true);
 
-  // float back_mul = 1;
-  // if (dim.has_value()) {
-  //   back_mul = tensor->shape[dim.value()];
-  // }
+  std::vector<int> out_shape;
+  if (dim.has_value()) {
+    out_shape = tensor->shape;
+    if (!keepdim)
+      out_shape.erase(out_shape.begin() + dim.value());
+    else
+      out_shape[dim.value()] = 1;
+  } else {
+    out_shape = {1};
+  }
+  auto prev = std::vector<Tensor *>{tensor};
+  auto out = Tensor(data, out_shape, prev, "sum(" + tensor->name + ")", true);
+
   auto backward = [tensor, &out]() {
     for (int i = 0; i < out.prev[0]->data.size(); i++) {
       tensor->grad[i] += out.grad[0];

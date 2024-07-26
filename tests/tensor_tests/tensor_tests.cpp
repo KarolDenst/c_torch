@@ -1,3 +1,4 @@
+#include "../../src/nn/functional/loss.h"
 #include "../../src/tensor/tensor.h"
 #include "../../src/tensor/tensor_create.h"
 #include "../../src/tensor/tensor_func.h"
@@ -152,6 +153,41 @@ TEST(TensorTest, MatrixMultiplicationBackward_ForMatchingShapes_Works) {
   ExpectVectorsNear(t2.grad, std::vector<float>({1.0, 1.0, 2.0, 2.0}));
 }
 
+TEST(TensorTest, MatrixMultiplication_ForTensors_Works) {
+  // arrange
+  auto t1 = Tensor({8, 6, 4, 2, 0, -2, -4, -6}, {2, 2, 2});
+  auto t2 = Tensor({1, 2, 3, 4, 5, 6, 7, 8}, {2, 2, 2});
+
+  // act
+  auto result = t1 & t2;
+  result.backward(false);
+
+  // assert
+  ExpectVectorsNear(result.data,
+                    std::vector<float>({26, 40, 10, 16, -14, -16, -62, -72}));
+  EXPECT_EQ(result.shape, std::vector<int>({2, 2, 2}));
+  ExpectVectorsNear(t1.grad,
+                    std::vector<float>({12, 12, 8, 8, -4, -4, -8, -8}));
+  ExpectVectorsNear(t2.grad, std::vector<float>({3, 7, 3, 7, 11, 15, 11, 15}));
+}
+
+TEST(TensorTest, MatrixMultiplication_ForTensorAndMatrix_Works) {
+  // arrange
+  auto t1 = Tensor({8, 6, 4, 2, 0, -2, -4, -6}, {2, 2, 2});
+  auto t2 = Tensor({1, 2, 3, 4}, {2, 2});
+
+  // act
+  auto result = t1 & t2;
+  result.backward(false);
+
+  // assert
+  ExpectVectorsNear(result.data,
+                    std::vector<float>({26, 40, 10, 16, -6, -8, -22., -32}));
+  EXPECT_EQ(result.shape, std::vector<int>({2, 2, 2}));
+  ExpectVectorsNear(t1.grad, std::vector<float>({3, 7, 3, 7, 3, 7, 3, 7}));
+  ExpectVectorsNear(t2.grad, std::vector<float>({8, 8, 0, 0}));
+}
+
 TEST(TensorTest, backward_ForSingleValueTensors_Works) {
   // arrange
   auto x1 = Tensor({2.0}, {1});
@@ -206,6 +242,30 @@ TEST(TensorTest, backward_ForBranchingModel_Works) {
   EXPECT_NEAR(w1.grad[0], 4, eps);
   EXPECT_NEAR(x1.grad[0], 1, eps);
   EXPECT_NEAR(x0.grad[0], -3, eps);
+}
+
+TEST(TensorTest, Backward_ForLinearLayerBatchedData_Works) {
+  // arrange
+  auto w = Tensor({0.1, 0.2, 0.3, 0.4}, {2, 2});
+  auto b = Tensor({0.1, 0.2}, {2});
+  auto x = Tensor({0.1, 0.2, 0.3, 0.4, 0.5, 0.6}, {3, 2});
+  auto y = Tensor({-0.1, 0.2, -0.3, 0.4, -0.5, 0.6}, {3, 2});
+
+  // act
+  auto wx = x & w;
+  auto wx_b = wx + b;
+  auto o = tanh(&wx_b);
+  auto loss = nn::functional::mse_loss(o, y);
+  loss->backward(false);
+
+  // assert
+  ExpectVectorsNear(wx.data, {0.07, 0.1, 0.15, 0.22, 0.23, 0.34});
+  ExpectVectorsNear(wx_b.data, {0.17, 0.30, 0.25, 0.42, 0.33, 0.54});
+  ExpectVectorsNear(o.data, {0.1684, 0.2913, 0.2449, 0.3969, 0.3185, 0.4930});
+  ExpectVectorsNear(loss->data, {1.0587});
+
+  ExpectVectorsNear(w.grad, {1.0950, -0.0658, 1.3967, -0.0658});
+  ExpectVectorsNear(b.grad, {3.0169615, -5.3018e-5}, 1.0e-7);
 }
 
 TEST(TensorTest, CopyConstructor_CopiesData_1to1) {

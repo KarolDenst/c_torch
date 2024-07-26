@@ -7,6 +7,8 @@ namespace nn {
 namespace functional {
 
 tensor::Tensor *cross_entropy(tensor::Tensor &output, tensor::Tensor &target);
+tensor::Tensor *mse_loss(tensor::Tensor &output, tensor::Tensor &target,
+                         std::string reduction = "mean");
 
 } // namespace functional
 } // namespace nn

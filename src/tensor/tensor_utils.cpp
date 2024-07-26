@@ -13,8 +13,8 @@ Tensor stack(std::vector<Tensor *> tensors) {
   auto data = std::vector<float>(tensors[0]->data.size() * tensors.size());
   for (int i = 0; i < tensors.size(); i++) {
     assert(tensors[i]->shape == tensors[0]->shape);
-    for (int j = 0; j < tensors[0]->data.size(); j++) {
-      data[i * tensors[0]->data.size() + j] = tensors[i]->data[j];
+    for (int j = 0; j < tensors[i]->data.size(); j++) {
+      data[i * tensors[i]->data.size() + j] = tensors[i]->data[j];
     }
   }
   return Tensor(data, shape);

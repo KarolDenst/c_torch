@@ -7,10 +7,8 @@
 #include "nn/optim/sgd.h"
 #include "tensor.h"
 #include "tensor/tensor_create.h"
-#include "tensor_utils.h"
 #include "utils/data/csv_reader.h"
 #include <algorithm>
-#include <cassert>
 #include <iostream>
 #include <ostream>
 #include <string>
@@ -38,7 +36,7 @@ int main() {
 
   auto y_transform = [](const std::string &label) {
     auto result = tensor::one_hot(std::stoi(label), 10, false);
-    result.view({10});
+    result.view({1, 10});
     return result;
   };
   auto x_transform = [](const std::vector<std::string> &row) {
@@ -46,7 +44,7 @@ int main() {
     for (int i = 0; i < row.size(); i++) {
       result[i] = std::stof(row[i]) / 255.0f;
     }
-    return Tensor(result, {28 * 28});
+    return Tensor(result, {1, 28 * 28});
   };
 
   int train_size = 0.8 * csv_reader.data.size();
@@ -67,47 +65,40 @@ int main() {
   csv_reader.~CSVReader();
 
   // Define Model and parameters
-  auto model = nn::container::Sequential({
-      new nn::linear::Linear(28 * 28, 512), new nn::activation::Tanh(),
-      new nn::linear::Linear(512, 128), new nn::activation::Tanh(),
-      new nn::linear::Linear(128, 10),
-      // new nn::activation::Softmax(1)
-  });
+  auto model = nn::container::Sequential(
+      {new nn::linear::Linear(28 * 28, 512), new nn::activation::Tanh(),
+       new nn::linear::Linear(512, 128), new nn::activation::Tanh(),
+       new nn::linear::Linear(128, 10), new nn::activation::Tanh(),
+       new nn::activation::Softmax()});
 
-  auto optimizer = nn::optim::Adam(model.parameters(), 0.001f);
+  auto optimizer = nn::optim::SGD(model.parameters(), 0.01f);
   const int epochs = 1;
   const int batch_size = 32;
 
   // Train model
   for (int epoch = 0; epoch < epochs; epoch++) {
-
     for (int batch = 0; batch + batch_size < y_train.size();
          batch += batch_size) {
-      auto x_tensors = std::vector<Tensor *>();
-      auto y_tensors = std::vector<Tensor *>();
+
       for (int i = batch; i < batch + batch_size; i++) {
-        x_tensors.push_back(&x_train[i]);
-        y_tensors.push_back(&y_train[i]);
-      }
-      auto x = tensor::stack(x_tensors);
-      x.is_tmp = false;
-      x.name = "data";
-      auto y = tensor::stack(y_tensors);
-      y.name = "expected";
-      y.is_tmp = false;
+        optimizer.zero_grad();
+        auto x = x_train[i];
+        x.name = "data";
+        auto y = y_train[i];
+        y.name = "expected";
 
-      auto result = model.forward(new Tensor(x));
-      auto loss = nn::functional::mse_loss(*result, y);
+        auto result = model.forward(new Tensor(x));
+        auto loss = nn::functional::cross_entropy(*result, y);
 
-      if ((batch * batch_size) % 3200 == 0) {
-        std::cout << "Epoch: " << epoch << ", Iteration " << batch
-                  << " Loss: " << loss->data[0] << "\n";
-        // result->print();
-        // y.print();
+        if (i % 3000 == 0) {
+          std::cout << "Epoch: " << epoch << ", Iteration " << i
+                    << " Loss: " << loss->data[0] << "\n";
+          result->print();
+          y.print();
+        }
+        loss->backward();
+        optimizer.step();
       }
-      optimizer.zero_grad();
-      loss->backward();
-      optimizer.step();
     }
   }
 

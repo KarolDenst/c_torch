@@ -1,10 +1,8 @@
 #include "tensor_utils.h"
 #include <gtest/gtest.h>
 
-
 void ExpectVectorsNear(const std::vector<float> &expected,
-                       const std::vector<float> &actual) {
-  auto tolerance = 1.0e-4f;
+                       const std::vector<float> &actual, float tolerance) {
   ASSERT_EQ(expected.size(), actual.size()) << "Vectors are of unequal length";
 
   for (size_t i = 0; i < expected.size(); ++i) {

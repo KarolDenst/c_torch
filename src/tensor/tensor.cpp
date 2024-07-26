@@ -10,14 +10,15 @@ namespace tensor {
 
 Tensor::Tensor(std::vector<float> data, std::vector<int> shape,
                std::string name, bool is_tmp)
-    : data(data), shape(shape), name(name), is_tmp(is_tmp),
-      prev(std::vector<Tensor *>()), grad(std::vector<float>(data.size())),
-      back([]() {}) {}
+    : data(data), shape(shape), strides(compute_strides(shape)), name(name),
+      is_tmp(is_tmp), prev(std::vector<Tensor *>()),
+      grad(std::vector<float>(data.size())), back([]() {}) {}
 
 Tensor::Tensor(std::vector<float> data, std::vector<int> shape,
                std::vector<Tensor *> prev, std::string name, bool is_tmp)
-    : data(data), shape(shape), name(name), is_tmp(is_tmp), prev(prev),
-      grad(std::vector<float>(data.size())), back([]() {}) {}
+    : data(data), shape(shape), strides(compute_strides(shape)), name(name),
+      is_tmp(is_tmp), prev(prev), grad(std::vector<float>(data.size())),
+      back([]() {}) {}
 
 void Tensor::print(bool print_prev) {
   std::cout << name;
@@ -241,49 +242,110 @@ void Tensor::clear_tmp() {
   }
 }
 
+std::vector<int> Tensor::compute_strides(std::vector<int> shape) {
+  std::vector<int> strides(shape.size());
+  strides[shape.size() - 1] = 1;
+  for (int i = shape.size() - 2; i >= 0; i--) {
+    strides[i] = shape[i + 1] * strides[i + 1];
+  }
+  return strides;
+}
+
+std::tuple<std::vector<int>, std::vector<int>, std::vector<int>>
+Tensor::compute_broadcast_strides(Tensor &first, Tensor &second) {
+  std::vector<int> out_shape = std::vector<int>();
+  std::vector<int> shape1 = first.shape;
+  std::vector<int> shape2 = second.shape;
+  while (shape1.size() < shape2.size()) {
+    shape1.insert(shape1.begin(), 1);
+  }
+  while (shape2.size() < shape1.size()) {
+    shape2.insert(shape2.begin(), 1);
+  }
+  for (int i = 0; i < shape1.size(); i++) {
+    if (shape1[i] != shape2[i] && shape1[i] != 1 && shape2[i] != 1) {
+      for (int i = 0; i < first.shape.size(); i++)
+        std::cout << first.shape[i] << " ";
+      std::cout << std::endl;
+      for (int i = 0; i < second.shape.size(); i++)
+        std::cout << second.shape[i] << " ";
+      std::cout << std::endl;
+      throw std::runtime_error("Shape missmatch");
+    }
+    if (shape1[i] == 1) {
+      out_shape.push_back(shape2[i]);
+    } else {
+      out_shape.push_back(shape1[i]);
+    }
+  }
+
+  std::vector<int> s1 = compute_strides(shape1);
+  std::vector<int> s2 = compute_strides(shape2);
+  std::vector<int> stride1 = std::vector<int>(s1.size());
+  std::vector<int> stride2 = std::vector<int>(s2.size());
+  for (int i = 0; i < s1.size(); i++) {
+    if (shape1[i] == shape2[i]) {
+      stride1[i] = s1[i];
+      stride2[i] = s2[i];
+    } else if (shape1[i] == 1) {
+      stride1[i] = 0;
+      stride2[i] = s2[i];
+    } else if (shape2[i] == 1) {
+      stride1[i] = s1[i];
+      stride2[i] = 0;
+    } else {
+      throw std::runtime_error("Invalid shape");
+    }
+  }
+
+  return std::make_tuple(out_shape, stride1, stride2);
+}
+
 Tensor
 Tensor::transform(Tensor *first, Tensor *second,
                   void (*front)(Tensor *, Tensor *, Tensor *, int, int, int),
                   void (*back)(Tensor *, Tensor *, Tensor *, int, int, int),
                   std::string name) {
-  Tensor *larger;
-  if (first->data.size() >= second->data.size()) {
-    assert(first->data.size() % second->data.size() == 0);
-    larger = first;
-  } else {
-    assert(second->data.size() % first->data.size() == 0);
-    larger = second;
-  }
+  auto tuple = compute_broadcast_strides(*first, *second);
+  auto out_shape = std::get<0>(tuple);
+  auto stride1 = std::get<1>(tuple);
+  auto stride2 = std::get<2>(tuple);
 
-  auto out = Tensor(std::vector<float>(larger->data.size()), larger->shape,
+  auto data_size = std::accumulate(out_shape.begin(), out_shape.end(), 1,
+                                   std::multiplies<int>());
+  auto out = Tensor(std::vector<float>(data_size), out_shape,
                     std::vector<Tensor *>{first, second},
                     first->name + name + second->name, true);
-  int i = 0, j = 0;
-  for (int k = 0; k < out.data.size(); k++) {
-    if (i == first->data.size())
-      i = 0;
-    if (j == second->data.size())
-      j = 0;
-    front(first, second, &out, i, j, k);
-    i++;
-    j++;
-  }
+
+  transform_rec(0, 0, 0, 0, out, first, second, stride1, stride2, front);
 
   auto backward = [first, second, &out, back]() {
-    int i = 0, j = 0;
-    for (int k = 0; k < out.data.size(); k++) {
-      if (i == first->data.size())
-        i = 0;
-      if (j == second->data.size())
-        j = 0;
-      back(first, second, &out, i, j, k);
-      i++;
-      j++;
-    }
+    auto tuple = compute_broadcast_strides(*first, *second);
+    auto stride1 = std::get<1>(tuple);
+    auto stride2 = std::get<2>(tuple);
+    transform_rec(0, 0, 0, 0, out, first, second, stride1, stride2, back);
   };
   out.back = backward;
 
   return out;
 }
 
+void Tensor::transform_rec(int dim, int offset1, int offset2, int index,
+                           Tensor &out, Tensor *first, Tensor *second,
+                           std::vector<int> &stride1, std::vector<int> &stride2,
+                           void (*func)(Tensor *, Tensor *, Tensor *, int, int,
+                                        int)) {
+  if (dim >= out.shape.size()) {
+    func(first, second, &out, offset1, offset2, index);
+    return;
+  }
+  int s1 = 0, s2 = 0;
+  for (int i = 0; i < out.shape[dim]; i++) {
+    transform_rec(dim + 1, offset1 + s1, offset2 + s2, index, out, first,
+                  second, stride1, stride2, func);
+    index += out.strides[dim];
+    s1 += stride1[dim];
+    s2 += stride2[dim];
+  }
+};
 } // namespace tensor

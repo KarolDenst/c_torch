@@ -64,6 +64,7 @@ TEST(TensorFunTest, Sum_Works) {
   // assert
   ExpectVectorsNear(result.data, std::vector<float>({10.0}));
   ExpectVectorsNear(t.grad, std::vector<float>({1.0, 1.0, 1.0, 1.0}));
+  EXPECT_EQ(result.shape, std::vector<int>({1}));
 }
 
 TEST(TensorFunTest, Sum_ForSpecifiedDim_Works) {
@@ -77,4 +78,5 @@ TEST(TensorFunTest, Sum_ForSpecifiedDim_Works) {
   // assert
   ExpectVectorsNear(result.data, std::vector<float>({3, 7}));
   ExpectVectorsNear(t.grad, std::vector<float>({1.0, 1.0, 1.0, 1.0}));
+  EXPECT_EQ(result.shape, std::vector<int>({2}));
 }

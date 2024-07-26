@@ -7,8 +7,10 @@
 #include "nn/optim/sgd.h"
 #include "tensor.h"
 #include "tensor/tensor_create.h"
+#include "tensor_utils.h"
 #include "utils/data/csv_reader.h"
 #include <algorithm>
+#include <cassert>
 #include <iostream>
 #include <ostream>
 #include <string>
@@ -30,7 +32,7 @@ int get_max_index(tensor::Tensor tensor) {
 int main() {
   // Setup Training Data
   std::string exe_path = get_executable_path();
-  std::string train_path = exe_path + "..\\data\\train.csv";
+  std::string train_path = exe_path + "..\\..\\data\\train.csv";
   auto csv_reader = utils::data::CSVReader(train_path);
   auto labels = csv_reader.pop("label");
 
@@ -69,7 +71,7 @@ int main() {
       {new nn::linear::Linear(28 * 28, 512), new nn::activation::Tanh(),
        new nn::linear::Linear(512, 128), new nn::activation::Tanh(),
        new nn::linear::Linear(128, 10), new nn::activation::Tanh(),
-       new nn::activation::Softmax()});
+       new nn::activation::Softmax(0)});
 
   auto optimizer = nn::optim::SGD(model.parameters(), 0.01f);
   const int epochs = 1;
@@ -77,28 +79,34 @@ int main() {
 
   // Train model
   for (int epoch = 0; epoch < epochs; epoch++) {
+
     for (int batch = 0; batch + batch_size < y_train.size();
          batch += batch_size) {
-
+      auto x_tensors = std::vector<Tensor *>();
+      auto y_tensors = std::vector<Tensor *>();
       for (int i = batch; i < batch + batch_size; i++) {
-        optimizer.zero_grad();
-        auto x = x_train[i];
-        x.name = "data";
-        auto y = y_train[i];
-        y.name = "expected";
-
-        auto result = model.forward(new Tensor(x));
-        auto loss = nn::functional::cross_entropy(*result, y);
-
-        if (i % 3000 == 0) {
-          std::cout << "Epoch: " << epoch << ", Iteration " << i
-                    << " Loss: " << loss->data[0] << "\n";
-          result->print();
-          y.print();
-        }
-        loss->backward();
-        optimizer.step();
+        x_tensors.push_back(&x_train[i]);
+        y_tensors.push_back(&y_train[i]);
       }
+      auto x = tensor::stack(x_tensors);
+      x.is_tmp = false;
+      x.name = "data";
+      auto y = tensor::stack(y_tensors);
+      y.name = "expected";
+      y.is_tmp = false;
+
+      auto result = model.forward(new Tensor(x));
+      auto loss = nn::functional::cross_entropy(*result, y);
+
+      if (batch % 100 == 0) {
+        std::cout << "Epoch: " << epoch << ", Iteration " << batch
+                  << " Loss: " << loss->data[0] << "\n";
+        result->print();
+        y.print();
+      }
+      optimizer.zero_grad();
+      loss->backward();
+      optimizer.step();
     }
   }
 

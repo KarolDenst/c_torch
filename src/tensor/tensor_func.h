@@ -7,9 +7,11 @@
 namespace tensor {
 
 Tensor tanh(Tensor *tensor);
+Tensor relu(Tensor *tensor);
 Tensor log(Tensor *tensor);
 Tensor exp(Tensor *tensor);
-Tensor sum(Tensor *tensor, std::optional<int> dim = std::nullopt);
+Tensor sum(Tensor *tensor, std::optional<int> dim = std::nullopt,
+           bool keepdim = false);
 
 } // namespace tensor
 

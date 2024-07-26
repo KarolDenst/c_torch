@@ -13,8 +13,11 @@ public:
   Softmax(std::optional<int> dim = std::nullopt) { this->dim = dim; }
 
   tensor::Tensor *forward(tensor::Tensor *data) {
+    bool keepdim = false;
+    if (dim.has_value())
+      keepdim = true;
     auto exps = new tensor::Tensor(tensor::exp(data));
-    auto sum = new tensor::Tensor(tensor::sum(exps, dim));
+    auto sum = new tensor::Tensor(tensor::sum(exps, dim, keepdim));
     return new tensor::Tensor(*exps / *sum);
   }
 

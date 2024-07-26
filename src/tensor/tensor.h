@@ -37,11 +37,18 @@ public:
   void clear_tmp();
 
 private:
+  static std::vector<int> compute_strides(std::vector<int> shape);
+  static std::tuple<std::vector<int>, std::vector<int>, std::vector<int>>
+  compute_broadcast_strides(Tensor &first, Tensor &second);
   static Tensor
   transform(Tensor *first, Tensor *second,
             void (*front)(Tensor *, Tensor *, Tensor *, int, int, int),
             void (*back)(Tensor *, Tensor *, Tensor *, int, int, int),
             std::string name = "");
+  static void transform_rec(int, int, int, int, Tensor &, Tensor *, Tensor *,
+                            std::vector<int> &, std::vector<int> &,
+                            void (*front)(Tensor *, Tensor *, Tensor *, int,
+                                          int, int));
 };
 
 } // namespace tensor
