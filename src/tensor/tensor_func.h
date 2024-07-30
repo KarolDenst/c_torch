@@ -6,13 +6,13 @@
 
 namespace tensor {
 
-Tensor tanh(Tensor *tensor);
-Tensor relu(Tensor *tensor);
-Tensor log(Tensor *tensor);
-Tensor exp(Tensor *tensor);
-Tensor sum(Tensor *tensor, std::optional<int> dim = std::nullopt,
+Tensor tanh(Tensor &tensor);
+Tensor relu(Tensor &tensor);
+Tensor log(Tensor &tensor);
+Tensor exp(Tensor &tensor);
+Tensor sum(Tensor &tensor, std::optional<int> dim = std::nullopt,
            bool keepdim = false);
-Tensor mean(Tensor *tensor);
+Tensor mean(Tensor &tensor);
 
 } // namespace tensor
 

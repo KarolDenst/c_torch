@@ -10,12 +10,12 @@ TEST(LossTests, MSE_WithMeanReduction_Works) {
 
   // act
   auto result = nn::functional::mse_loss(t1, t2, "mean");
-  result->backward(false);
+  result.backward();
 
   // assert
-  EXPECT_EQ(result->data[0], 7.5);
-  ExpectVectorsNear(t1.grad, {-0.5, -1, -1.5, -2});
-  ExpectVectorsNear(t2.grad, {0.5, 1, 1.5, 2});
+  EXPECT_EQ(result.data(0), 7.5);
+  ExpectVectorsNear(t1.grad(), {-0.5, -1, -1.5, -2});
+  ExpectVectorsNear(t2.grad(), {0.5, 1, 1.5, 2});
 }
 
 TEST(LossTests, MSE_WithSumReduction_Works) {
@@ -25,12 +25,12 @@ TEST(LossTests, MSE_WithSumReduction_Works) {
 
   // act
   auto result = nn::functional::mse_loss(t1, t2, "sum");
-  result->backward(false);
+  result.backward();
 
   // assert
-  EXPECT_EQ(result->data[0], 30);
-  ExpectVectorsNear(t1.grad, {-2, -4, -6, -8});
-  ExpectVectorsNear(t2.grad, {2, 4, 6, 8});
+  EXPECT_EQ(result.data(0), 30);
+  ExpectVectorsNear(t1.grad(), {-2, -4, -6, -8});
+  ExpectVectorsNear(t2.grad(), {2, 4, 6, 8});
 }
 
 TEST(LossTests, CrossEntropy_Works) {
@@ -40,10 +40,10 @@ TEST(LossTests, CrossEntropy_Works) {
 
   // act
   auto result = nn::functional::cross_entropy(t1, t2);
-  result->backward(false);
+  result.backward();
 
   // assert
-  ExpectVectorsNear(result->data, {1.4076});
-  ExpectVectorsNear(t1.grad,
+  ExpectVectorsNear(result.data(), {1.4076});
+  ExpectVectorsNear(t1.grad(),
                     {-0.4550, 0.1224, 0.3326, 0.0450, 0.1224, -0.1674});
 }

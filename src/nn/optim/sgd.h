@@ -15,8 +15,8 @@ public:
       : Optimizer(parameters), learning_rate(learning_rate) {}
   virtual void step() {
     for (Tensor *parameter : parameters) {
-      for (int i = 0; i < parameter->grad.size(); i++) {
-        parameter->data[i] -= learning_rate * parameter->grad[i];
+      for (int i = 0; i < parameter->grad().size(); i++) {
+        parameter->data()[i] -= learning_rate * parameter->grad()[i];
       }
     }
   }

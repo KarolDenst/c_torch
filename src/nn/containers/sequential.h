@@ -11,7 +11,7 @@ class Sequential : public Module {
 public:
   Sequential(std::vector<Module *> modules);
 
-  tensor::Tensor *forward(tensor::Tensor *data);
+  tensor::Tensor forward(tensor::Tensor data);
   std::vector<tensor::Tensor *> parameters();
 
   void append(Module *module);

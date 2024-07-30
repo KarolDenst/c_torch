@@ -1,54 +1,42 @@
 #ifndef TENSOR_H
 #define TENSOR_H
 
-#include <functional>
+#include "variable/variable.h"
+#include <memory>
 #include <string>
 #include <vector>
 
 namespace tensor {
 
-const float EPS = 1e-7;
-
 class Tensor {
 public:
-  std::vector<float> data;
-  std::vector<int> shape;
-  std::vector<int> strides;
-  std::vector<float> grad;
-  std::string name = "";
-  bool is_tmp;
-  std::function<void(void)> back;
-  std::vector<Tensor *> prev;
+  std::shared_ptr<variable::Variable> var;
 
-  Tensor(std::vector<float> data, std::vector<int> shape, std::string name = "",
-         bool is_tmp = true);
   Tensor(std::vector<float> data, std::vector<int> shape,
-         std::vector<Tensor *> prev, std::string name = "", bool is_tmp = true);
-  void print(bool print_prev = false);
-  template <std::size_t N> float &get_data(const int (&indices)[N]);
-  template <std::size_t N> float &get_grad(const int (&indices)[N]);
+         std::string name = "");
+  Tensor(std::vector<float> data, std::vector<int> shape,
+         std::vector<Tensor> prev, std::string name = "");
+  Tensor(std::shared_ptr<variable::Variable> var);
+
+  std::vector<float> &data() { return var->data; }
+  std::vector<float> &grad() { return var->grad; }
+  std::vector<int> &shape() { return var->shape; }
+
+  float &data(int index) { return var->data[index]; }
+  float &grad(int index) { return var->grad[index]; }
+  int &shape(int index) { return var->shape[index]; }
+
   Tensor operator+(Tensor &other);
   Tensor operator-(Tensor &other);
   Tensor operator*(Tensor &other);
   Tensor operator/(Tensor &other);
   Tensor operator&(Tensor &other);
+
+  void print(bool print_prev = false);
   void view(std::vector<int> shape);
-  void backward(bool clear_tmp = true);
-  void clear_tmp();
+  void backward();
 
 private:
-  static std::vector<int> compute_strides(std::vector<int> shape);
-  static std::tuple<std::vector<int>, std::vector<int>, std::vector<int>>
-  compute_broadcast_strides(Tensor &first, Tensor &second);
-  static Tensor
-  transform(Tensor *first, Tensor *second,
-            void (*front)(Tensor *, Tensor *, Tensor *, int, int, int),
-            void (*back)(Tensor *, Tensor *, Tensor *, int, int, int),
-            std::string name = "");
-  static void transform_rec(int, int, int, int, Tensor &, Tensor *, Tensor *,
-                            std::vector<int> &, std::vector<int> &,
-                            void (*front)(Tensor *, Tensor *, Tensor *, int,
-                                          int, int));
 };
 
 } // namespace tensor

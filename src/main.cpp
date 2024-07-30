@@ -1,3 +1,4 @@
+#include "nn/activation/relu.h"
 #include "nn/activation/softmax.h"
 #include "nn/activation/tanh.h"
 #include "nn/containers/sequential.h"
@@ -25,8 +26,9 @@ std::string get_executable_path() {
 }
 
 int get_max_index(tensor::Tensor tensor) {
-  auto max_element = std::max_element(tensor.data.begin(), tensor.data.end());
-  return std::distance(tensor.data.begin(), max_element);
+  auto max_element =
+      std::max_element(tensor.var->data.begin(), tensor.var->data.end());
+  return std::distance(tensor.var->data.begin(), max_element);
 }
 
 int main() {
@@ -37,7 +39,7 @@ int main() {
   auto labels = csv_reader.pop("label");
 
   auto y_transform = [](const std::string &label) {
-    auto result = tensor::one_hot(std::stoi(label), 10, false);
+    auto result = tensor::one_hot(std::stoi(label), 10);
     result.view({10});
     return result;
   };
@@ -96,23 +98,21 @@ int main() {
         y_tensors.push_back(&y_train[i]);
       }
       auto x = tensor::stack(x_tensors);
-      x.is_tmp = false;
-      x.name = "data";
+      x.var->name = "data";
       auto y = tensor::stack(y_tensors);
-      y.name = "expected";
-      y.is_tmp = false;
+      y.var->name = "expected";
 
-      auto result = model.forward(new Tensor(x));
-      auto loss = criterion(*result, y);
+      auto result = model.forward(x);
+      auto loss = criterion(result, y);
 
       if ((batch * batch_size) % 3200 == 0) {
         std::cout << "Epoch: " << epoch << ", Iteration " << batch
-                  << " Loss: " << loss->data[0] << "\n";
+                  << " Loss: " << loss.var->data[0] << "\n";
         // result->print();
         // y.print();
       }
       optimizer.zero_grad();
-      loss->backward();
+      loss.backward();
       optimizer.step();
     }
   }
@@ -129,17 +129,16 @@ int main() {
     auto x = x_val[i];
     auto y = y_val[i];
 
-    auto result = model.forward(new Tensor(x));
+    auto result = model.forward(x);
 
-    int result_index = get_max_index(*result);
+    int result_index = get_max_index(result);
     int y_index = get_max_index(y);
     if (result_index == y_index) {
       accuracy++;
     }
 
-    auto loss = criterion(*result, y);
-    avg_loss += loss->data[0];
-    loss->clear_tmp();
+    auto loss = criterion(result, y);
+    avg_loss += loss.var->data[0];
   }
   accuracy /= size;
   avg_loss /= size;

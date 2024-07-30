@@ -13,7 +13,7 @@ public:
   virtual void step() {}
   virtual void zero_grad() {
     for (tensor::Tensor *parameter : parameters) {
-      std::fill(parameter->grad.begin(), parameter->grad.end(), 0.0f);
+      std::fill(parameter->grad().begin(), parameter->grad().end(), 0.0f);
     }
   }
 

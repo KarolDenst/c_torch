@@ -10,11 +10,11 @@ TEST(SoftmaxTest, Softmax_WithoutDim_Works) {
   auto softmax = nn::activation::Softmax();
 
   // act
-  auto result = softmax.forward(&t1);
-  result->backward(false);
+  auto result = softmax.forward(t1);
+  result.backward();
 
   // assert
-  ExpectVectorsNear(result->data,
+  ExpectVectorsNear(result.data(),
                     std::vector<float>({0.0321, 0.0871, 0.2369, 0.6439}));
 }
 
@@ -25,10 +25,10 @@ TEST(SoftmaxTest, Softmax_ForSpecificDim_Works) {
   auto softmax = nn::activation::Softmax(1);
 
   // act
-  auto result = softmax.forward(&t1);
-  result->backward(false);
+  auto result = softmax.forward(t1);
+  result.backward();
 
   // assert
-  ExpectVectorsNear(result->data,
+  ExpectVectorsNear(result.data(),
                     std::vector<float>({0.2689, 0.7311, 0.2689, 0.7311}));
 }

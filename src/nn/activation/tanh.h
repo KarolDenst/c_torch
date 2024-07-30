@@ -4,15 +4,12 @@
 #include "../../tensor/tensor_func.h"
 #include "../containers/module.h"
 
-
 namespace nn {
 namespace activation {
 
 class Tanh : public Module {
 public:
-  tensor::Tensor *forward(tensor::Tensor *data) {
-    return new tensor::Tensor(tensor::tanh(data));
-  }
+  tensor::Tensor forward(tensor::Tensor data) { return tensor::tanh(data); }
 };
 
 } // namespace activation

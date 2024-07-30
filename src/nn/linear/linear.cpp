@@ -13,18 +13,18 @@ Linear::Linear(int in_features, int out_features, bool has_bias)
     : in_features(in_features), out_features(out_features), has_bias(has_bias),
       weights(tensor::uniform({in_features, out_features},
                               -1.0f / std::sqrt(in_features),
-                              1.0f / std::sqrt(in_features), false)),
-      bias(has_bias ? std::make_optional(tensor::zeros({out_features}, false))
+                              1.0f / std::sqrt(in_features))),
+      bias(has_bias ? std::make_optional(tensor::zeros({out_features}))
                     : std::nullopt) {
-  weights.name = "weights";
+  weights.var->name = "weights";
   if (this->has_bias)
-    bias.value().name = "bias";
+    bias.value().var->name = "bias";
 }
 
-Tensor *Linear::forward(Tensor *data) {
-  auto result = new Tensor(*data & weights);
+Tensor Linear::forward(Tensor data) {
+  auto result = data & weights;
   if (this->has_bias)
-    result = new Tensor(*result + bias.value());
+    result = result + bias.value();
   return result;
 }
 

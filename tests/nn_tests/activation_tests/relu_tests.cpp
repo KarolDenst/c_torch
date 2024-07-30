@@ -10,10 +10,10 @@ TEST(ReluTest, ReluWorks) {
   auto relu = nn::activation::ReLU();
 
   // act
-  auto result = relu.forward(&t1);
-  result->backward(false);
+  auto result = relu.forward(t1);
+  result.backward();
 
   // assert
-  ExpectVectorsNear(result->data, {0, 0, 3, 4});
-  ExpectVectorsNear(t1.grad, {0, 0, 1, 1});
+  ExpectVectorsNear(result.data(), {0, 0, 3, 4});
+  ExpectVectorsNear(t1.grad(), {0, 0, 1, 1});
 }

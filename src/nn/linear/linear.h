@@ -5,14 +5,13 @@
 #include "../containers/module.h"
 #include <optional>
 
-
 namespace nn {
 namespace linear {
 
 class Linear : public Module {
 public:
   Linear(int in_features, int out_features, bool has_bias = true);
-  tensor::Tensor *forward(tensor::Tensor *data);
+  tensor::Tensor forward(tensor::Tensor data);
   std::vector<tensor::Tensor *> parameters();
 
 private:
