@@ -11,7 +11,7 @@ TEST(TensorFunTest, Stack_Works) {
   auto t2 = Tensor({2.0, 4.0, 6.0, 6.0}, {2, 2});
 
   // act
-  auto result = stack({&t1, &t2});
+  auto result = stack({t1, t2});
 
   // assert
   ExpectVectorsNear(result.data(), std::vector<float>({1.0, 2.0, 3.0, 4.0, 2.0,

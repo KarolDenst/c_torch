@@ -10,8 +10,6 @@ namespace tensor {
 
 class Tensor {
 public:
-  std::shared_ptr<variable::Variable> var;
-
   Tensor(std::vector<float> data, std::vector<int> shape,
          std::string name = "");
   Tensor(std::vector<float> data, std::vector<int> shape,
@@ -26,6 +24,8 @@ public:
   float &grad(int index) { return var->grad[index]; }
   int &shape(int index) { return var->shape[index]; }
 
+  std::string &name() { return var->name; }
+
   Tensor operator+(Tensor &other);
   Tensor operator-(Tensor &other);
   Tensor operator*(Tensor &other);
@@ -37,6 +37,7 @@ public:
   void backward();
 
 private:
+  std::shared_ptr<variable::Variable> var;
 };
 
 } // namespace tensor

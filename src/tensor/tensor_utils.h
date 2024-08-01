@@ -6,7 +6,7 @@
 
 namespace tensor {
 
-Tensor stack(std::vector<Tensor *> tensors);
+Tensor stack(std::vector<Tensor> tensors);
 
 } // namespace tensor
 

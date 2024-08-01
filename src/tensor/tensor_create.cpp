@@ -14,7 +14,7 @@ Tensor zeros(std::vector<int> shape) {
   return Tensor(data, shape, "zeros");
 }
 
-Tensor zeros_like(const Tensor &tensor) { return zeros(tensor.var->shape); }
+Tensor zeros_like(Tensor tensor) { return zeros(tensor.shape()); }
 
 Tensor one_hot(int num, int num_classes) {
   auto data = std::vector<float>(num_classes, 0);

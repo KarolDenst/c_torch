@@ -123,14 +123,13 @@ std::shared_ptr<Variable> Variable::mat_mul(std::shared_ptr<Variable> first,
       shape[i] = second->shape[j];
     }
   }
-  std::vector<float> data;
+  auto data = std::vector<float>(shape1[0] * shape2[1], 0);
   for (int i = 0; i < shape1[0]; i++) {
-    for (int j = 0; j < shape2[1]; j++) {
-      float sum = 0;
-      for (int k = 0; k < shape1[1]; k++) {
-        sum += first->data[i * shape1[1] + k] * second->data[k * shape2[1] + j];
+    for (int k = 0; k < shape1[1]; k++) {
+      for (int j = 0; j < shape2[1]; j++) {
+        data[i * shape2[1] + j] +=
+            first->data[i * shape1[1] + k] * second->data[k * shape2[1] + j];
       }
-      data.push_back(sum);
     }
   }
   auto prev = std::vector<std::shared_ptr<Variable>>{first, second};
@@ -138,30 +137,23 @@ std::shared_ptr<Variable> Variable::mat_mul(std::shared_ptr<Variable> first,
                                         first->name + " & " + second->name);
 
   auto backward = [out, first, second, shape1, shape2]() {
-    auto dC = out->grad;
-
-    std::vector<float> dA(shape1[0] * shape1[1], 0);
     for (int i = 0; i < shape1[0]; i++) {
-      for (int k = 0; k < shape2[0]; k++) {
+      for (int k = 0; k < shape1[1]; k++) {
         for (int j = 0; j < shape2[1]; j++) {
-          dA[i * shape1[1] + k] +=
-              dC[i * shape2[1] + j] * second->data[k * shape2[1] + j];
+          first->grad[i * shape1[1] + k] +=
+              out->grad[i * shape2[1] + j] * second->data[k * shape2[1] + j];
         }
       }
     }
 
-    std::vector<float> dB(shape2[0] * shape2[1], 0);
-    for (int k = 0; k < shape1[1]; k++) {
-      for (int i = 0; i < shape1[0]; i++) {
+    for (int i = 0; i < shape1[0]; i++) {
+      for (int k = 0; k < shape1[1]; k++) {
         for (int j = 0; j < shape2[1]; j++) {
-          dB[k * shape2[1] + j] +=
-              first->data[i * shape1[1] + k] * dC[i * shape2[1] + j];
+          second->grad[k * shape2[1] + j] +=
+              first->data[i * shape1[1] + k] * out->grad[i * shape2[1] + j];
         }
       }
     }
-
-    first->grad = dA;
-    second->grad = dB;
   };
   out->back = backward;
 

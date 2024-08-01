@@ -43,7 +43,7 @@ tensor::Tensor cross_entropy(tensor::Tensor &output, tensor::Tensor &target,
   if (reduction == "mean")
     return tensor::mean(result);
   else if (reduction == "sum")
-    return tensor::mean(result);
+    return tensor::sum(result);
   else if (reduction == "")
     return result;
   else

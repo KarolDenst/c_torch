@@ -16,9 +16,9 @@ Linear::Linear(int in_features, int out_features, bool has_bias)
                               1.0f / std::sqrt(in_features))),
       bias(has_bias ? std::make_optional(tensor::zeros({out_features}))
                     : std::nullopt) {
-  weights.var->name = "weights";
+  weights.name() = "weights";
   if (this->has_bias)
-    bias.value().var->name = "bias";
+    bias.value().name() = "bias";
 }
 
 Tensor Linear::forward(Tensor data) {

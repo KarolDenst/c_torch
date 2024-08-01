@@ -27,8 +27,8 @@ std::string get_executable_path() {
 
 int get_max_index(tensor::Tensor tensor) {
   auto max_element =
-      std::max_element(tensor.var->data.begin(), tensor.var->data.end());
-  return std::distance(tensor.var->data.begin(), max_element);
+      std::max_element(tensor.data().begin(), tensor.data().end());
+  return std::distance(tensor.data().begin(), max_element);
 }
 
 int main() {
@@ -91,25 +91,23 @@ int main() {
 
     for (int batch = 0; batch + batch_size < y_train.size();
          batch += batch_size) {
-      auto x_tensors = std::vector<Tensor *>();
-      auto y_tensors = std::vector<Tensor *>();
+      auto x_tensors = std::vector<Tensor>();
+      auto y_tensors = std::vector<Tensor>();
       for (int i = batch; i < batch + batch_size; i++) {
-        x_tensors.push_back(&x_train[i]);
-        y_tensors.push_back(&y_train[i]);
+        x_tensors.push_back(x_train[i]);
+        y_tensors.push_back(y_train[i]);
       }
       auto x = tensor::stack(x_tensors);
-      x.var->name = "data";
+      x.name() = "data";
       auto y = tensor::stack(y_tensors);
-      y.var->name = "expected";
+      y.name() = "expected";
 
       auto result = model.forward(x);
       auto loss = criterion(result, y);
 
       if ((batch * batch_size) % 3200 == 0) {
         std::cout << "Epoch: " << epoch << ", Iteration " << batch
-                  << " Loss: " << loss.var->data[0] << "\n";
-        // result->print();
-        // y.print();
+                  << " Loss: " << loss.data(0) << "\n";
       }
       optimizer.zero_grad();
       loss.backward();
@@ -138,7 +136,7 @@ int main() {
     }
 
     auto loss = criterion(result, y);
-    avg_loss += loss.var->data[0];
+    avg_loss += loss.data(0);
   }
   accuracy /= size;
   avg_loss /= size;
