@@ -93,13 +93,15 @@ std::shared_ptr<Variable> Variable::mul(std::shared_ptr<Variable> first,
 std::shared_ptr<Variable> Variable::div(std::shared_ptr<Variable> first,
                                         std::shared_ptr<Variable> second) {
   auto front = [](Variable *first, Variable *second, Variable *out, int i,
-                  int j,
-                  int k) { out->data[k] = first->data[i] / second->data[j]; };
+                  int j, int k) {
+    out->data[k] = first->data[i] / second->data[j] + EPS;
+  };
   auto back = [](Variable *first, Variable *second, Variable *out, int i, int j,
                  int k) {
-    first->grad[i] += 1.0 / (second->data[j]) * out->grad[k];
+    first->grad[i] += 1.0 / (second->data[j]) * out->grad[k] + EPS;
     second->grad[j] +=
-        -first->data[i] / (second->data[j] * second->data[j]) * out->grad[k];
+        -first->data[i] / (second->data[j] * second->data[j]) * out->grad[k] +
+        EPS;
   };
   return transform(first, second, front, back, "/");
 }
@@ -124,36 +126,20 @@ std::shared_ptr<Variable> Variable::mat_mul(std::shared_ptr<Variable> first,
     }
   }
   auto data = std::vector<float>(shape1[0] * shape2[1], 0);
-  for (int i = 0; i < shape1[0]; i++) {
-    for (int k = 0; k < shape1[1]; k++) {
-      for (int j = 0; j < shape2[1]; j++) {
-        data[i * shape2[1] + j] +=
-            first->data[i * shape1[1] + k] * second->data[k * shape2[1] + j];
-      }
-    }
-  }
+  fast_mat_mul(first->data.data(), second->data.data(), data.data(), shape1[0],
+               shape2[1], shape1[1]);
   auto prev = std::vector<std::shared_ptr<Variable>>{first, second};
   auto out = std::make_shared<Variable>(data, shape, prev,
                                         first->name + " & " + second->name);
 
   auto backward = [out, first, second, shape1, shape2]() {
-    for (int i = 0; i < shape1[0]; i++) {
-      for (int k = 0; k < shape1[1]; k++) {
-        for (int j = 0; j < shape2[1]; j++) {
-          first->grad[i * shape1[1] + k] +=
-              out->grad[i * shape2[1] + j] * second->data[k * shape2[1] + j];
-        }
-      }
-    }
+    fast_mat_mul<false, true, false>(out->grad.data(), second->data.data(),
+                                     first->grad.data(), shape1[0], shape1[1],
+                                     shape2[1]);
 
-    for (int i = 0; i < shape1[0]; i++) {
-      for (int k = 0; k < shape1[1]; k++) {
-        for (int j = 0; j < shape2[1]; j++) {
-          second->grad[k * shape2[1] + j] +=
-              first->data[i * shape1[1] + k] * out->grad[i * shape2[1] + j];
-        }
-      }
-    }
+    fast_mat_mul<true, false, false>(first->data.data(), out->grad.data(),
+                                     second->grad.data(), shape1[1], shape2[1],
+                                     shape1[0]);
   };
   out->back = backward;
 
@@ -325,4 +311,45 @@ void Variable::transform_rec(int dim, int offset1, int offset2, int index,
     s2 += stride2[dim];
   }
 };
+
+template <bool transpose1, bool transpose2, bool transpose3>
+inline void fast_mat_mul(const float *left, const float *right, float *result,
+                         int rows, int columns, int inners, int tileSize) {
+#pragma omp parallel for shared(result, left, right) default(none) collapse(2) \
+    num_threads(8)
+  for (int rowTile = 0; rowTile < rows; rowTile += 256) {
+    for (int columnTile = 0; columnTile < columns; columnTile += 256) {
+      for (int innerTile = 0; innerTile < inners; innerTile += tileSize) {
+        int rowTileEnd = std::min(rows, rowTile + 256);
+        int colTileEnd = std::min(columns, columnTile + 256);
+        int innerTileEnd = std::min(inners, innerTile + tileSize);
+        for (int row = rowTile; row < rowTileEnd; row++) {
+          for (int inner = innerTile; inner < innerTileEnd; inner++) {
+            for (int col = columnTile; col < colTileEnd; col++) {
+              float l;
+              if (transpose1)
+                l = left[inner * rows + row];
+              else
+                l = left[row * inners + inner];
+
+              float r;
+              if (transpose2)
+                r = right[col * inners + inner];
+              else
+                r = right[inner * columns + col];
+
+              if (transpose3)
+                result[row * columns + col] += l * r;
+              else
+                result[row * columns + col] += l * r;
+
+              // result[row * columns + col] +=
+              //     left[row * inners + inner] * right[inner * columns + col];
+            }
+          }
+        }
+      }
+    }
+  }
+}
 } // namespace variable

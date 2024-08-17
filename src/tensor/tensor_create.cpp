@@ -25,7 +25,7 @@ Tensor one_hot(int num, int num_classes) {
 
 Tensor rand_n(std::vector<int> shape) {
   std::random_device rd;
-  std::mt19937 gen(rd());
+  std::minstd_rand gen(rd());
   std::normal_distribution<> distr(0.0f, 1.0f);
   int size =
       std::accumulate(shape.begin(), shape.end(), 1, std::multiplies<int>());
@@ -38,7 +38,7 @@ Tensor rand_n(std::vector<int> shape) {
 
 Tensor uniform(std::vector<int> shape, float low, float high) {
   std::random_device rd;
-  std::mt19937 gen(rd());
+  std::minstd_rand gen(rd());
   std::uniform_real_distribution<> distr(low, high);
   int size =
       std::accumulate(shape.begin(), shape.end(), 1, std::multiplies<int>());

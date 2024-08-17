@@ -6,6 +6,9 @@
 #include <string>
 #include <vector>
 
+#define ROW_COL_PARALLEL_INNER_TILING_TILE_SIZE 16
+#define EPS 0.0000001f
+
 namespace variable {
 
 class Variable {
@@ -53,6 +56,14 @@ private:
                             void (*front)(Variable *, Variable *, Variable *,
                                           int, int, int));
 };
+
+// https://siboehm.com/articles/22/Fast-MMM-on-CPU
+template <bool transpose1 = false, bool transpose2 = false,
+          bool transpose3 = false>
+inline void
+fast_mat_mul(const float *left, const float *right, float *result, int rows,
+             int columns, int inners,
+             int tileSize = ROW_COL_PARALLEL_INNER_TILING_TILE_SIZE);
 
 } // namespace variable
 

@@ -145,8 +145,8 @@ std::shared_ptr<Variable> mean(std::shared_ptr<Variable> variable) {
                                         "mean(" + variable->name + ")");
 
   auto backward = [variable, out]() {
-    for (int i = 0; i < out->grad.size(); i++) {
-      variable->grad[i] += out->grad[i] * 1.0 / variable->data.size();
+    for (int i = 0; i < variable->grad.size(); i++) {
+      variable->grad[i] += out->grad[0] / variable->data.size();
     }
   };
   out->back = backward;
