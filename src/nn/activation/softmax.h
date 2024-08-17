@@ -12,7 +12,7 @@ class Softmax : public Module {
 public:
   Softmax(std::optional<int> dim = std::nullopt) { this->dim = dim; }
 
-  tensor::Tensor forward(tensor::Tensor data) {
+  tensor::Tensor forward(tensor::Tensor data) override {
     bool keepdim = false;
     if (dim.has_value())
       keepdim = true;

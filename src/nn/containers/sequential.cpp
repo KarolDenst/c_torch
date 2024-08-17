@@ -26,6 +26,20 @@ std::vector<Tensor *> Sequential::parameters() {
   return params;
 }
 
+void Sequential::train() {
+  Module::train();
+  for (auto &module : modules) {
+    module->train();
+  }
+}
+
+void Sequential::eval() {
+  Module::eval();
+  for (auto &module : modules) {
+    module->eval();
+  }
+}
+
 void Sequential::append(Module *module) { modules.push_back(module); }
 
 } // namespace container

@@ -11,8 +11,8 @@ namespace linear {
 class Linear : public Module {
 public:
   Linear(int in_features, int out_features, bool has_bias = true);
-  tensor::Tensor forward(tensor::Tensor data);
-  std::vector<tensor::Tensor *> parameters();
+  tensor::Tensor forward(tensor::Tensor data) override;
+  std::vector<tensor::Tensor *> parameters() override;
 
 private:
   int in_features;

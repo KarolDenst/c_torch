@@ -34,6 +34,8 @@ public:
                                        std::shared_ptr<Variable> second);
   static std::shared_ptr<Variable> mat_mul(std::shared_ptr<Variable> first,
                                            std::shared_ptr<Variable> second);
+  static std::shared_ptr<Variable> greater(std::shared_ptr<Variable> variable,
+                                           float val);
   void view(std::vector<int> shape);
   void backward();
 

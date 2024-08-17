@@ -44,6 +44,10 @@ Tensor Tensor::operator&(Tensor &other) {
   return Tensor(Variable::mat_mul(var, other.var));
 }
 
+Tensor Tensor::operator>(float value) {
+  return Tensor(Variable::greater(var, value));
+}
+
 void Tensor::view(std::vector<int> shape) { var->view(shape); }
 
 void Tensor::backward() { var->backward(); }

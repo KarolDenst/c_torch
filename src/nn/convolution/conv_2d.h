@@ -12,9 +12,9 @@ namespace conv {
 // public:
 //   Conv2d(int in_channels, int out_channels, int kernel_size,
 //          bool has_bias = true);
-//   tensor::Tensor *forward(tensor::Tensor *data);
-//   std::vector<tensor::Tensor *> parameters();
-
+//   tensor::Tensor forward(tensor::Tensor data) override;
+//   std::vector<tensor::Tensor *> parameters() override;
+//
 // private:
 //   bool has_bias;
 //   tensor::Tensor weights;

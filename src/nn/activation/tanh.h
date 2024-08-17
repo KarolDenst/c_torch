@@ -9,7 +9,9 @@ namespace activation {
 
 class Tanh : public Module {
 public:
-  tensor::Tensor forward(tensor::Tensor data) { return tensor::tanh(data); }
+  tensor::Tensor forward(tensor::Tensor data) override {
+    return tensor::tanh(data);
+  }
 };
 
 } // namespace activation

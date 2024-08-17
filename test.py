@@ -1,12 +1,19 @@
 import torch
 import torch.nn.functional as F
+import time
 
 
-x = torch.tensor([-1,-2,3,4],dtype=torch.float32, requires_grad=True)
+start = time.time()
 
+x = torch.randn([1000, 1000])
+y = torch.randn([1000, 1000])
+for i in range(10):
+    result = x + y
+    result = x - y
+    result = x * y
+    result = x / y
+    result = x @ y
 
-out = x.relu()
-out.sum().backward()
+end = time.time()
 
-print(out)
-print(x.grad)
+print(1000 * (end - start), "ms")

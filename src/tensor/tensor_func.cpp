@@ -5,12 +5,7 @@
 
 namespace tensor {
 
-Tensor tanh(Tensor &tensor) {
-  auto test = variable::tanh(tensor.var);
-  auto test2 = Tensor(test);
-
-  return Tensor(variable::tanh(tensor.var));
-}
+Tensor tanh(Tensor &tensor) { return Tensor(variable::tanh(tensor.var)); }
 
 Tensor relu(Tensor &tensor) { return Tensor(variable::relu(tensor.var)); }
 

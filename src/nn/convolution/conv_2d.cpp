@@ -1,5 +1,7 @@
 #include "conv_2d.h"
 #include "../../tensor/tensor.h"
+#include "../../tensor/tensor_create.h"
+#include <numeric>
 #include <stdexcept>
 #include <vector>
 
@@ -12,71 +14,67 @@ namespace conv {
 //                bool has_bias)
 //     : in_channels(in_channels), out_channels(out_channels),
 //       kernel_size(kernel_size), has_bias(has_bias),
-//       weights(Tensor::rand_n(
-//           {kernel_size, kernel_size, in_channels, out_channels}, false)),
-//       bias(has_bias ? std::make_optional(Tensor::zeros({out_channels}, false))
+//       weights(tensor::rand_n(
+//           {kernel_size, kernel_size, in_channels, out_channels})),
+//       bias(has_bias ? std::make_optional(tensor::zeros({out_channels}))
 //                     : std::nullopt) {
-//   weights.name = "weights";
+//   weights.name() = "weights";
 //   if (this->has_bias)
-//     bias.value().name = "bias";
+//     bias.value().name() = "bias";
 // }
-
-// tensor::Tensor *Conv2d::forward(tensor::Tensor *data) {
-//   if (data->shape.size() != 3) {
-//     throw std::invalid_argument("Input data must be 3D");
+//
+// Tensor Conv2d::forward(Tensor data) {
+//   // Data in format (batch, channels, height, width)
+//   if (data.shape().size() != 4) {
+//     throw std::invalid_argument("Input data must be 4D");
 //   }
-//   auto result_shape =
-//       std::vector<int>{data->shape[0] - kernel_size + 1,
-//                        data->shape[1] - kernel_size + 1, out_channels};
-//   auto result_data = std::vector<float>();
-
-//   for (int i = 0; i < data->shape[0] - kernel_size + 1; i++) {
-//     for (int j = 0; j < data->shape[1] - kernel_size + 1; j++) {
-//       for (int out = 0; out < out_channels; out++) {
-
-//         float sum = 0;
-//         for (int in = 0; in < in_channels; in++) {
-//           for (int k = 0; k < kernel_size; k++) {
-//             for (int l = 0; l < kernel_size; l++) {
-//               sum += data->get_data({i + k, j + l, in}) *
-//                      weights.get_data({k, l, in, out});
-//             }
-//           }
-//         }
-//         result_data.push_back(sum);
-//       }
-//     }
-//   }
-//   auto prev = std::vector<Tensor *>{data};
-//   auto output = new Tensor(result_data, result_shape, prev,
-//                            "conv(" + data->name + ")", true);
-//   auto backwards = [this, data, output]() {
-//     for (int i = 0; i < data->shape[0] - kernel_size + 1; i++) {
-//       for (int j = 0; j < data->shape[1] - kernel_size + 1; j++) {
-//         for (int out = 0; out < out_channels; out++) {
-//           for (int in = 0; in < in_channels; in++) {
-//             for (int k = 0; k < kernel_size; k++) {
-//               for (int l = 0; l < kernel_size; l++) {
-//                 float grad = output->get_grad({i, j, out});
-//                 data->get_grad({i + k, j + l, in}) +=
-//                     grad * weights.get_data({k, l, in, out});
-//                 weights.get_grad({k, l, in, out}) +=
-//                     grad * data->get_data({i + k, j + l, in});
+//   auto result_shape = std::vector<int>{data.shape(0), out_channels,
+//                                        data.shape(2) + 1 - kernel_size,
+//                                        data.shape(3) + 1 - kernel_size};
+//   auto result_data = std::vector<float>(
+//       std::accumulate(result_shape.begin(), result_shape.end(), 1,
+//                       std::multiplies<float>()),
+//       0);
+//
+//   for (int b = 0; b < result_shape[0]; b++) {
+//     for (int c = 0; c < result_shape[1]; c++) {
+//       for (int y = 0; y < result_shape[2]; y++) {
+//         for (int x = 0; x < result_shape[3]; x++) {
+//           for (int m = 0; m < kernel_size; m++) {
+//             for (int n = 0; n < kernel_size; n++) {
+//               for (int o = 0; o < in_channels; o++) {
+//                 result_data[b * result_shape[1] * result_shape[2] *
+//                                 result_shape[3] +
+//                             c * result_shape[2] * result_shape[3] +
+//                             y * result_shape[3] + x] +=
+//                     data.data(b * data.shape(1) * data.shape(2) *
+//                                   data.shape(3) +
+//                               o * data.shape(2) * data.shape(3) +
+//                               (y + m) * data.shape(3) + (x + n)) *
+//                     weights.data(m * kernel_size * in_channels * out_channels
+//                     +
+//                                  n * in_channels * out_channels +
+//                                  o * out_channels + c);
 //               }
 //             }
 //           }
 //         }
 //       }
 //     }
-//   };
-//   output->back = backwards;
-
+//   }
+//
+//   auto prev = std::vector<Tensor>{data};
+//   auto output =
+//       Tensor(result_data, result_shape, prev, "conv(" + data.name() + ")");
+//   auto backwards = [this, data, output]() {};
+//   output.back = backwards;
+//
 //   if (this->has_bias) {
-//     return new Tensor(*output + bias.value());
+//     return Tensor(output + bias.value());
 //   }
 //   return output;
 // }
-
+//
 // std::vector<tensor::Tensor *> Conv2d::parameters() {
 //   std::vector<Tensor *> params;
 //   params.push_back(&weights);

@@ -9,7 +9,9 @@ namespace activation {
 
 class ReLU : public Module {
 public:
-  tensor::Tensor forward(tensor::Tensor data) { return tensor::relu(data); }
+  tensor::Tensor forward(tensor::Tensor data) override {
+    return tensor::relu(data);
+  }
 };
 
 } // namespace activation

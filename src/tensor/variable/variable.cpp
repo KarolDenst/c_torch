@@ -160,6 +160,28 @@ std::shared_ptr<Variable> Variable::mat_mul(std::shared_ptr<Variable> first,
   return out;
 }
 
+std::shared_ptr<Variable> Variable::greater(std::shared_ptr<Variable> variable,
+                                            float val) {
+  auto data = std::vector<float>(variable->data.size());
+  for (int i = 0; i < variable->data.size(); i++) {
+    data[i] = variable->data[i] > val;
+  }
+
+  auto prev = std::vector<std::shared_ptr<Variable>>{variable};
+  auto out = std::make_shared<Variable>(
+      data, variable->shape, prev, std::to_string(val) + "<" + variable->name);
+
+  auto backward = [variable, out, val]() {
+    for (int i = 0; i < out->grad.size(); i++) {
+      if (out->data[i] > val) {
+        variable->grad[i] += out->grad[i];
+      }
+    }
+  };
+  out->back = backward;
+  return out;
+}
+
 void Variable::view(std::vector<int> shape) {
   auto dim1 =
       std::accumulate(shape.begin(), shape.end(), 1, std::multiplies<int>());

@@ -29,10 +29,9 @@ Tensor binary_cross_entropy(Tensor &output, Tensor &target) {
   return loss;
 }
 
-tensor::Tensor cross_entropy(tensor::Tensor &output, tensor::Tensor &target,
-                             std::string reduction) {
+Tensor cross_entropy(Tensor &output, Tensor &target, std::string reduction) {
   if (output.shape().size() == 1)
-    output.view({1, output.shape()[0]});
+    output.view({1, output.shape(0)});
   auto exp = tensor::exp(output);
   auto sum = tensor::sum(exp, 1);
   auto log = tensor::log(sum);
@@ -53,13 +52,10 @@ tensor::Tensor cross_entropy(tensor::Tensor &output, tensor::Tensor &target,
 Tensor mse_loss(Tensor &output, Tensor &target, std::string reduction) {
   auto diff = output - target;
   auto square = diff * diff;
-  auto sum = tensor::sum(square);
   if (reduction == "sum") {
-    return sum;
+    return tensor::sum(square);
   } else if (reduction == "mean") {
-    auto number = static_cast<float>(output.data().size());
-    auto inverse = Tensor(std::vector<float>(1, 1.0f / number), {1}, "inverse");
-    return inverse * sum;
+    return tensor::mean(square);
   } else {
     throw std::invalid_argument("Invalid reduction");
   }

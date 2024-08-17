@@ -11,7 +11,6 @@ namespace tensor {
 class Tensor {
 public:
   std::shared_ptr<variable::Variable> var;
-
   Tensor(std::vector<float> data, std::vector<int> shape,
          std::string name = "");
   Tensor(std::vector<float> data, std::vector<int> shape,
@@ -33,6 +32,7 @@ public:
   Tensor operator*(Tensor &other);
   Tensor operator/(Tensor &other);
   Tensor operator&(Tensor &other);
+  Tensor operator>(float value);
 
   void print(bool print_prev = false);
   void view(std::vector<int> shape);
