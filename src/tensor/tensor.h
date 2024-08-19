@@ -17,6 +17,8 @@ public:
          std::vector<Tensor> prev, std::string name = "");
   Tensor(std::shared_ptr<variable::Variable> var);
 
+  float &get(std::initializer_list<int> args);
+
   std::vector<float> &data() { return var->data; }
   std::vector<float> &grad() { return var->grad; }
   std::vector<int> &shape() { return var->shape; }

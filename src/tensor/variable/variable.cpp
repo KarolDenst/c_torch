@@ -21,6 +21,16 @@ Variable::Variable(std::vector<float> data, std::vector<int> shape,
     : data(data), shape(shape), strides(compute_strides(shape)), name(name),
       prev(prev), grad(std::vector<float>(data.size())), back([]() {}) {}
 
+float &Variable::get(std::initializer_list<int> args) {
+  assert(args.size() == shape.size());
+  int index = 0;
+  int i = 0;
+  for (auto it = args.begin(); it != args.end(); it++) {
+    index += *it * strides[i++];
+  }
+  return data[index];
+}
+
 void Variable::print(bool print_prev) {
   std::cout << name;
   std::cout << std::endl << "Data: ";

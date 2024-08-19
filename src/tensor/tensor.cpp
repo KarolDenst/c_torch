@@ -20,6 +20,8 @@ Tensor::Tensor(std::vector<float> data, std::vector<int> shape,
   }
 }
 
+float &Tensor::get(std::initializer_list<int> args) { return var->get(args); }
+
 Tensor::Tensor(std::shared_ptr<Variable> var) : var(var) {}
 
 void Tensor::print(bool print_prev) { var->print(print_prev); }

@@ -7,7 +7,7 @@ namespace nn {
 std::vector<tensor::Tensor *> Module::parameters() { return {}; }
 
 void Module::save(std::string filename) {
-  std::ofstream file(filename);
+  std::ofstream file(filename, std::ios::trunc);
   assert(file.is_open());
 
   for (auto tensor : parameters()) {

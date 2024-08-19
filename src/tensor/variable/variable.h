@@ -26,6 +26,8 @@ public:
   Variable(std::vector<float> data, std::vector<int> shape,
            std::vector<std::shared_ptr<Variable>> prev, std::string name = "");
 
+  float &get(std::initializer_list<int> args);
+
   void print(bool print_prev = false);
   static std::shared_ptr<Variable> add(std::shared_ptr<Variable> first,
                                        std::shared_ptr<Variable> second);
