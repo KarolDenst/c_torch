@@ -10,12 +10,12 @@ namespace tensor {
 
 class Tensor {
 public:
-  std::shared_ptr<variable::Variable> var;
+  std::shared_ptr<variable::Variable<>> var;
   Tensor(std::vector<float> data, std::vector<int> shape,
          std::string name = "");
   Tensor(std::vector<float> data, std::vector<int> shape,
          std::vector<Tensor> prev, std::string name = "");
-  Tensor(std::shared_ptr<variable::Variable> var);
+  Tensor(std::shared_ptr<variable::Variable<>> var);
 
   float &get(std::initializer_list<int> args);
 
