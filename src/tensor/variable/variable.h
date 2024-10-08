@@ -204,7 +204,7 @@ Variable<DType>::div(std::shared_ptr<Variable<DType>> first,
                      std::shared_ptr<Variable<DType>> second) {
   auto front = [](Variable<DType> *first, Variable<DType> *second,
                   Variable<DType> *out, int i, int j, int k) {
-    out->data[k] = first->data[i] / second->data[j] + EPS;
+    out->data[k] = first->data[i] / (second->data[j] + EPS);
   };
   auto back = [](Variable<DType> *first, Variable<DType> *second,
                  Variable<DType> *out, int i, int j, int k) {
